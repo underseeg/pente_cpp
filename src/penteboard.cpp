@@ -89,7 +89,7 @@ namespace cj::pente
                 });
         }
 
-        int contiguous_matches_from_origin(const board& board, std::size_t x, std::size_t y, direction axisDirection)
+        auto contiguous_matches_from_origin(const board& board, std::size_t x, std::size_t y, direction axisDirection)
         {
             const auto playerSpace = board[x, y];
             const auto contiguous_matches = [playerSpace](const auto& range)

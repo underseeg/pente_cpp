@@ -8,18 +8,20 @@
 
 namespace cj::pente
 {
+    using namespace std;
+
     namespace
     {
         /// @brief Maximum number of steps to take in a single direction when checking for contiguous pieces or captures.
-        constexpr std::size_t MaxStepsPerDirection {4};
+        constexpr size_t MaxStepsPerDirection {4};
 
         struct direction
         {
-            std::ptrdiff_t dx;
-            std::ptrdiff_t dy;
+            ptrdiff_t dx;
+            ptrdiff_t dy;
         };
 
-        constexpr std::array<direction, 4> AxisDirections {{
+        constexpr array<direction, 4> AxisDirections {{
             {1, 0}, // Horizontal axis
             {0, 1}, // Vertical axis
             {1, 1}, // Falling diagonal axis (top-left to bottom-right)
@@ -48,12 +50,12 @@ namespace cj::pente
         {
             const auto maxX = max_steps_to_edge(x, rayDirection.dx);
             const auto maxY = max_steps_to_edge(y, rayDirection.dy);
-            return std::min(maxX, maxY);
+            return min(maxX, maxY);
         }
 
         std::ptrdiff_t to_end_point(std::size_t start, std::ptrdiff_t step, std::ptrdiff_t length)
         {
-            return static_cast<std::ptrdiff_t>(start) + ((length - 1) * step);
+            return static_cast<ptrdiff_t>(start) + ((length - 1) * step);
         }
 
         /// @brief Generates a range of board positions in a specified direction from a starting point.
@@ -65,24 +67,24 @@ namespace cj::pente
         /// @return A range of board positions in the specified direction.
         auto ray(board_view& boardView, std::size_t x, std::size_t y, direction rayDirection)
         {
-            const std::ptrdiff_t length = std::min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
+            const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
 
-            return std::views::iota(0z, length)
-                | std::views::transform([=](std::ptrdiff_t step) -> space& {
-                    const std::size_t rayX = static_cast<std::ptrdiff_t>(x) + (rayDirection.dx * step);
-                    const std::size_t rayY = static_cast<std::ptrdiff_t>(y) + (rayDirection.dy * step);
+            return views::iota(0z, length)
+                | views::transform([=](ptrdiff_t step) -> space& {
+                    const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
+                    const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
                     return boardView[rayY, rayX];
                 });
         }
 
         auto ray(const board_view& boardView, std::size_t x, std::size_t y, direction rayDirection)
         {
-            const std::ptrdiff_t length = std::min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
+            const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
 
-            return std::views::iota(0z, length)
-                | std::views::transform([=](std::ptrdiff_t step) -> const space& {
-                    const std::size_t rayX = static_cast<std::ptrdiff_t>(x) + (rayDirection.dx * step);
-                    const std::size_t rayY = static_cast<std::ptrdiff_t>(y) + (rayDirection.dy * step);
+            return views::iota(0z, length)
+                | views::transform([=](ptrdiff_t step) -> const space& {
+                    const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
+                    const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
                     return boardView[rayY, rayX];
                 });
         }
@@ -92,9 +94,9 @@ namespace cj::pente
             const auto playerSpace = boardView[y, x];
             const auto contiguous_matches = [playerSpace](const auto& range)
             {
-                return std::ranges::distance(
+                return ranges::distance(
                     range
-                    | std::views::take_while([playerSpace](space currentSpace) {
+                    | views::take_while([playerSpace](space currentSpace) {
                         return currentSpace == playerSpace;
                     }));
             };
@@ -125,7 +127,7 @@ namespace cj::pente
 
         unsigned int capture_along_axis(board_view& boardView, std::size_t startX, std::size_t startY, direction axisDirection)
         {
-            constexpr std::ptrdiff_t CaptureLength = 4;
+            constexpr ptrdiff_t CaptureLength = 4;
             if (!is_span_in_bounds(startX, startY, axisDirection, CaptureLength))
             {
                 return 0u;
@@ -176,7 +178,7 @@ namespace cj::pente
 
     bool check_five_in_a_row(const board& board, std::size_t x, std::size_t y)
     {
-        return std::ranges::any_of(AxisDirections, [&](const direction& axisDirection) {
+        return ranges::any_of(AxisDirections, [&](const direction& axisDirection) {
             return axis_has_five_in_a_row(board.view, x, y, axisDirection);
         });
     }

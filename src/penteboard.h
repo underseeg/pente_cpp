@@ -26,16 +26,43 @@ namespace cj::pente
     using board_array = std::array<space, GridSize * GridSize>;
     using board_view = std::mdspan<space, std::extents<std::size_t, GridSize, GridSize>>;
 
-    //TODO consider encapsulating as a class and hiding internal representation (once interfaces are complete)
-    struct board
+    class board
     {
-        board_array data;
-        board_view view{data.data()};
+    public:
+        board() = default;
+        // could implement but don't need
+        board(const board& other) = delete;
+        board(board&& other) noexcept = delete;
+        board& operator=(const board& other) = delete;
+        board& operator=(board&& other) noexcept = delete;
 
+        /// @brief Accesses the space at the given coordinates. Behaviour is undefined if (x, y) is out of bounds.
+        /// @param x The x-coordinate of the space.
+        /// @param y The y-coordinate of the space.
+        /// @return A reference to the space at the given coordinates.
         auto operator[](std::size_t x, std::size_t y) -> space&
         {
             return view[y, x];
         }
+
+        auto operator[](std::size_t x, std::size_t y) const -> const space&
+        {
+            return view[y, x];
+        }
+
+        /// @brief Returns a view of the rows of the board, where each row is a span of type: space.
+        /// @return A view of the rows of the board.
+        inline auto rows() const
+        {
+            return std::views::iota(0zu, GridSize)
+                | std::views::transform([this](std::size_t row) {
+                    return std::span{view.data_handle() + row * GridSize, GridSize};
+                });
+        }
+
+    private:
+        board_array data{};
+        const board_view view{data.data()};
     };
 
     struct capture_pots
@@ -52,14 +79,6 @@ namespace cj::pente
     constexpr space to_space(piece piece)
     {
         return (piece == piece::Black ? space::Black : space::White);
-    }
-
-    inline auto get_rows(const board& board)
-    {
-        return std::views::iota(0zu, GridSize)
-            | std::views::transform([&board](std::size_t row) {
-                return std::span{board.view.data_handle() + row * GridSize, GridSize};
-            });
     }
 
     /// @brief Checks if the given coordinates are within the bounds of the board.

@@ -65,33 +65,33 @@ namespace cj::pente
         /// @param y The starting y-coordinate.
         /// @param rayDirection The direction in which to generate the range.
         /// @return A range of board positions in the specified direction.
-        auto ray(board_view& boardView, std::size_t x, std::size_t y, direction rayDirection)
+        auto ray(board& board, std::size_t x, std::size_t y, direction rayDirection)
         {
             const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
 
             return views::iota(0z, length)
-                | views::transform([=](ptrdiff_t step) -> space& {
+                | views::transform([=, &board](ptrdiff_t step) -> space& {
                     const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
                     const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
-                    return boardView[rayY, rayX];
+                    return board[rayX, rayY];
                 });
         }
 
-        auto ray(const board_view& boardView, std::size_t x, std::size_t y, direction rayDirection)
+        auto ray(const board& board, std::size_t x, std::size_t y, direction rayDirection)
         {
             const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
 
             return views::iota(0z, length)
-                | views::transform([=](ptrdiff_t step) -> const space& {
+                | views::transform([=, &board](ptrdiff_t step) -> const space& {
                     const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
                     const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
-                    return boardView[rayY, rayX];
+                    return board[rayX, rayY];
                 });
         }
 
-        int contiguous_matches_from_origin(const board_view& boardView, std::size_t x, std::size_t y, direction axisDirection)
+        int contiguous_matches_from_origin(const board& board, std::size_t x, std::size_t y, direction axisDirection)
         {
-            const auto playerSpace = boardView[y, x];
+            const auto playerSpace = board[x, y];
             const auto contiguous_matches = [playerSpace](const auto& range)
             {
                 return ranges::distance(
@@ -101,13 +101,13 @@ namespace cj::pente
                     }));
             };
 
-            return contiguous_matches(ray(boardView, x, y, axisDirection));
+            return contiguous_matches(ray(board, x, y, axisDirection));
         }
 
-        bool axis_has_five_in_a_row(const board_view& boardView, std::size_t x, std::size_t y, direction axisDirection)
+        bool axis_has_five_in_a_row(const board& board, std::size_t x, std::size_t y, direction axisDirection)
         {
-            const auto forwardCount = contiguous_matches_from_origin(boardView, x, y, axisDirection);
-            const auto reverseCount = contiguous_matches_from_origin(boardView, x, y, opposite(axisDirection));
+            const auto forwardCount = contiguous_matches_from_origin(board, x, y, axisDirection);
+            const auto reverseCount = contiguous_matches_from_origin(board, x, y, opposite(axisDirection));
 
             return (forwardCount + reverseCount - 1) >= 5;
         }
@@ -125,7 +125,7 @@ namespace cj::pente
             return (space == space::Black ? space::White : space::Black);
         }
 
-        unsigned int capture_along_axis(board_view& boardView, std::size_t startX, std::size_t startY, direction axisDirection)
+        unsigned int capture_along_axis(board& board, std::size_t startX, std::size_t startY, direction axisDirection)
         {
             constexpr ptrdiff_t CaptureLength = 4;
             if (!is_span_in_bounds(startX, startY, axisDirection, CaptureLength))
@@ -133,8 +133,8 @@ namespace cj::pente
                 return 0u;
             }
 
-            auto line = ray(boardView, startX, startY, axisDirection);
-            const auto playerSpace = boardView[startY, startX];
+            auto line = ray(board, startX, startY, axisDirection);
+            const auto playerSpace = board[startX, startY];
             const auto opponentSpace = opposite(playerSpace);
 
             if (line[0] != playerSpace || line[1] != opponentSpace || line[2] != opponentSpace || line[3] != playerSpace)
@@ -161,8 +161,8 @@ namespace cj::pente
 
         for (const auto& axisDirection : AxisDirections)
         {
-            capturedPieces += capture_along_axis(board.view, x, y, axisDirection);
-            capturedPieces += capture_along_axis(board.view, x, y, opposite(axisDirection));
+            capturedPieces += capture_along_axis(board, x, y, axisDirection);
+            capturedPieces += capture_along_axis(board, x, y, opposite(axisDirection));
         }
 
         return capturedPieces;
@@ -179,7 +179,7 @@ namespace cj::pente
     bool check_five_in_a_row(const board& board, std::size_t x, std::size_t y)
     {
         return ranges::any_of(AxisDirections, [&](const direction& axisDirection) {
-            return axis_has_five_in_a_row(board.view, x, y, axisDirection);
+            return axis_has_five_in_a_row(board, x, y, axisDirection);
         });
     }
 }

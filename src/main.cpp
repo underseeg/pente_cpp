@@ -40,7 +40,7 @@ const char* to_string(piece piece)
 
 void print_board(const board& board)
 {
-    for (auto row_view : get_rows(board))
+    for (auto row_view : board.rows())
     {
         for (auto space : row_view)
         {

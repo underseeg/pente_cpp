@@ -67,7 +67,7 @@ namespace
         }
 
         size_t y = 0;
-        for (auto row : get_rows(b))
+        for (auto row : b.rows())
         {
             require(row.size() == GridSize, "Each row span should have GridSize entries");
 

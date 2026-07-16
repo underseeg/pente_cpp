@@ -4,6 +4,7 @@
 #include <mdspan>
 #include <span>
 #include <ranges>
+#include <utility>
 
 namespace cj::pente
 {
@@ -39,24 +40,19 @@ namespace cj::pente
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if (x, y) is out of bounds.
         /// @param x The x-coordinate of the space.
         /// @param y The y-coordinate of the space.
-        /// @return A reference to the space at the given coordinates.
-        auto operator[](std::size_t x, std::size_t y) -> space&
+        /// @return A cv-qualified reference to the space at the given coordinates.
+        auto&& operator[](this auto&& self, std::size_t x, std::size_t y)
         {
-            return view[y, x];
+            return std::forward_like<decltype(self)>(self.view[y, x]);
         }
 
-        auto operator[](std::size_t x, std::size_t y) const -> const space&
-        {
-            return view[y, x];
-        }
-
-        /// @brief Returns a view of the rows of the board, where each row is a span of type: space.
+        /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.
         /// @return A view of the rows of the board.
         inline auto rows() const
         {
             return std::views::iota(0zu, GridSize)
                 | std::views::transform([this](std::size_t row) {
-                    return std::span{view.data_handle() + row * GridSize, GridSize};
+                    return std::span{data.data() + row * GridSize, GridSize};
                 });
         }
 

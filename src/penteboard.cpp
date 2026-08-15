@@ -15,25 +15,76 @@ namespace cj::pente
         /// @brief Maximum number of steps to take in a single direction when checking for contiguous pieces or captures.
         constexpr size_t MaxStepsPerDirection {4};
 
-        struct direction
+        struct signed_coord
+        {
+            ptrdiff_t x;
+            ptrdiff_t y;
+        };
+
+        struct offset
         {
             ptrdiff_t dx;
             ptrdiff_t dy;
         };
 
-        constexpr array<direction, 4> AxisDirections {{
-            {1, 0}, // Horizontal axis
-            {0, 1}, // Vertical axis
-            {1, 1}, // Falling diagonal axis (top-left to bottom-right)
+        constexpr array<offset, 4> AxisDirections {{
+            {1,  0}, // Horizontal axis
+            {0,  1}, // Vertical axis
+            {1,  1}, // Falling diagonal axis (top-left to bottom-right)
             {1, -1} // Rising diagonal axis (top-right to bottom-left)
         }};
 
-        direction opposite(direction axisDirection)
+        constexpr signed_coord to_signed(coord position)
         {
-            return direction {
-                .dx = -axisDirection.dx,
-                .dy = -axisDirection.dy
+            return signed_coord {
+                .x = static_cast<ptrdiff_t>(position.x),
+                .y = static_cast<ptrdiff_t>(position.y)
             };
+        }
+
+        constexpr coord to_unsigned(signed_coord position)
+        {
+            return coord {
+                .x = static_cast<std::size_t>(position.x),
+                .y = static_cast<std::size_t>(position.y)
+            };
+        }
+
+        constexpr signed_coord operator+(coord position, offset delta)
+        {
+            return signed_coord {
+                .x = static_cast<ptrdiff_t>(position.x) + delta.dx,
+                .y = static_cast<ptrdiff_t>(position.y) + delta.dy
+            };
+        }
+
+        constexpr signed_coord operator+(signed_coord position, offset delta)
+        {
+            return signed_coord {
+                .x = position.x + delta.dx,
+                .y = position.y + delta.dy
+            };
+        }
+
+        constexpr offset operator*(offset delta, ptrdiff_t scale)
+        {
+            return offset {
+                .dx = delta.dx * scale,
+                .dy = delta.dy * scale
+            };
+        }
+
+        constexpr offset opposite(offset axisOffset)
+        {
+            return offset {
+                .dx = -axisOffset.dx,
+                .dy = -axisOffset.dy
+            };
+        }
+
+        constexpr offset operator*(offset delta, std::size_t scale)
+        {
+            return delta * static_cast<ptrdiff_t>(scale);
         }
 
         std::size_t max_steps_to_edge(std::size_t point, std::ptrdiff_t delta)
@@ -46,16 +97,16 @@ namespace cj::pente
                 return (GridSize - 1);
         }
 
-        std::size_t ray_steps_to_edge(std::size_t x, std::size_t y, direction rayDirection)
+        std::size_t ray_steps_to_edge(coord position, offset rayDirection)
         {
-            const auto maxX = max_steps_to_edge(x, rayDirection.dx);
-            const auto maxY = max_steps_to_edge(y, rayDirection.dy);
+            const auto maxX = max_steps_to_edge(position.x, rayDirection.dx);
+            const auto maxY = max_steps_to_edge(position.y, rayDirection.dy);
             return min(maxX, maxY);
         }
 
-        std::ptrdiff_t to_end_point(std::size_t start, std::ptrdiff_t step, std::ptrdiff_t length)
+        signed_coord to_end_point(coord start, offset step, std::ptrdiff_t length)
         {
-            return static_cast<ptrdiff_t>(start) + ((length - 1) * step);
+            return start + (step * (length - 1));
         }
 
         // define a concept for the board type so ray can handle both const and non-const boards
@@ -69,22 +120,21 @@ namespace cj::pente
         /// @param y The starting y-coordinate.
         /// @param rayDirection The direction in which to generate the range.
         /// @return A range of board positions in the specified direction.
-        auto ray(board_type auto& board, std::size_t x, std::size_t y, direction rayDirection)
+        auto ray(board_type auto& board, coord start, offset rayDirection)
         {
-            const size_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1u;
+            const size_t length = min(ray_steps_to_edge(start, rayDirection), MaxStepsPerDirection) + 1u;
 
             // returns a space& or const space& depending on whether board is const or not
             return views::iota(0zu, length)
                 | views::transform([=, &board](size_t step) -> decltype(auto) {
-                    const ptrdiff_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * static_cast<ptrdiff_t>(step));
-                    const ptrdiff_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * static_cast<ptrdiff_t>(step));
-                    return board[static_cast<size_t>(rayX), static_cast<size_t>(rayY)];
+                    const auto position = start + (rayDirection * step);
+                    return board[to_unsigned(position)]; // start and length are guaranteed to be in bounds
                 });
         }
 
-        auto contiguous_matches_from_origin(const board& board, std::size_t x, std::size_t y, direction axisDirection)
+        auto contiguous_matches_from_origin(const board& board, coord origin, offset axisDirection)
         {
-            const auto playerSpace = board[x, y];
+            const auto playerSpace = board[origin];
             const auto contiguous_matches = [playerSpace](const auto& range)
             {
                 return ranges::distance(
@@ -94,23 +144,22 @@ namespace cj::pente
                     }));
             };
 
-            return contiguous_matches(ray(board, x, y, axisDirection));
+            return contiguous_matches(ray(board, origin, axisDirection));
         }
 
-        bool axis_has_five_in_a_row(const board& board, std::size_t x, std::size_t y, direction axisDirection)
+        bool axis_has_five_in_a_row(const board& board, coord origin, offset axisDirection)
         {
-            const auto forwardCount = contiguous_matches_from_origin(board, x, y, axisDirection);
-            const auto reverseCount = contiguous_matches_from_origin(board, x, y, opposite(axisDirection));
+            const auto forwardCount = contiguous_matches_from_origin(board, origin, axisDirection);
+            const auto reverseCount = contiguous_matches_from_origin(board, origin, opposite(axisDirection));
 
             return (forwardCount + reverseCount - 1) >= 5;
         }
 
-        bool is_span_in_bounds(std::size_t startX, std::size_t startY, direction axisDirection, std::ptrdiff_t length)
+        bool is_span_in_bounds(coord start, offset axisDirection, std::ptrdiff_t length)
         {
-            const auto endX = to_end_point(startX, axisDirection.dx, length);
-            const auto endY = to_end_point(startY, axisDirection.dy, length);
-            return is_in_bounds(static_cast<std::ptrdiff_t>(startX), static_cast<std::ptrdiff_t>(startY))
-                && is_in_bounds(endX, endY);
+            const auto end = to_end_point(start, axisDirection, length);
+            return start.x < GridSize && start.y < GridSize
+                && is_in_bounds(end.x, end.y);
         }
 
         // behaviour is undefined if space is Empty
@@ -119,16 +168,16 @@ namespace cj::pente
             return (space == space::Black ? space::White : space::Black);
         }
 
-        unsigned int capture_along_axis(board& board, std::size_t startX, std::size_t startY, direction axisDirection)
+        unsigned int capture_along_axis(board& board, coord start, offset axisDirection)
         {
             constexpr ptrdiff_t CaptureLength = 4;
-            if (!is_span_in_bounds(startX, startY, axisDirection, CaptureLength))
+            if (!is_span_in_bounds(start, axisDirection, CaptureLength))
             {
                 return 0u;
             }
 
-            auto line = ray(board, startX, startY, axisDirection);
-            const auto playerSpace = board[startX, startY];
+            auto line = ray(board, start, axisDirection);
+            const auto playerSpace = board[start];
             const auto opponentSpace = opposite(playerSpace);
 
             if (line[0] != playerSpace || line[1] != opponentSpace || line[2] != opponentSpace || line[3] != playerSpace)
@@ -152,11 +201,12 @@ namespace cj::pente
     unsigned int apply_captures(board& board, std::size_t x, std::size_t y)
     {
         unsigned int capturedPieces = 0;
+        const coord origin {x, y};
 
         for (const auto& axisDirection : AxisDirections)
         {
-            capturedPieces += capture_along_axis(board, x, y, axisDirection);
-            capturedPieces += capture_along_axis(board, x, y, opposite(axisDirection));
+            capturedPieces += capture_along_axis(board, origin, axisDirection);
+            capturedPieces += capture_along_axis(board, origin, opposite(axisDirection));
         }
 
         return capturedPieces;
@@ -172,8 +222,10 @@ namespace cj::pente
 
     bool check_five_in_a_row(const board& board, std::size_t x, std::size_t y)
     {
-        return ranges::any_of(AxisDirections, [&](const direction& axisDirection) {
-            return axis_has_five_in_a_row(board, x, y, axisDirection);
+        const coord origin {x, y};
+
+        return ranges::any_of(AxisDirections, [&](const offset& axisDirection) {
+            return axis_has_five_in_a_row(board, origin, axisDirection);
         });
     }
 }

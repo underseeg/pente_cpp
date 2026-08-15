@@ -24,11 +24,18 @@ namespace cj::pente
         White
     };
 
+    struct coord
+    {
+        std::size_t x;
+        std::size_t y;
+    };
+
     class board
     {
     public:
         board() = default;
-        // could implement but don't need
+        // Could implement but don't need. The view member uses ref semantics, and exists with the assumption that it's an optimisation due to assumed frequent use of the operator[]
+        // TODO test assumption in terms of size and performance
         board(const board& other) = delete;
         board(board&& other) noexcept = delete;
         board& operator=(const board& other) = delete;
@@ -41,6 +48,14 @@ namespace cj::pente
         auto&& operator[](this auto&& self, std::size_t x, std::size_t y)
         {
             return std::forward_like<decltype(self)>(self.view[y, x]);
+        }
+        
+        /// @brief Accesses the space at the given coordinates. Behaviour is undefined if position is out of bounds.
+        /// @param position The coordinates of the space.
+        /// @return A cv-qualified reference to the space at the given coordinates.
+        auto&& operator[](this auto&& self, coord position)
+        {
+            return std::forward_like<decltype(self)>(self.view[position.y, position.x]);
         }
 
         /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.

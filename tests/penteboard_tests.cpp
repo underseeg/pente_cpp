@@ -10,6 +10,10 @@ using namespace std;
 
 namespace
 {
+    /// @brief Produces a predictable space value based on the coordinates, for testing purposes.
+    /// @param x The x-coordinate.
+    /// @param y The y-coordinate.
+    /// @return Diagonal coordinates produce Empty, coordinates above the diagonal produce Black, and coordinates below the diagonal produce White.
     space space_from_coords(size_t x, size_t y)
     {
         if (x == y)
@@ -23,6 +27,11 @@ namespace
         }
 
         return space::White;
+    }
+
+    coord to_coord(size_t index)
+    {
+        return coord{index % GridSize, index / GridSize};
     }
 
     void require(bool condition, const string& message)
@@ -58,12 +67,11 @@ namespace
     {
         board b{};
 
-        for (size_t y = 0; y < GridSize; y++)
+        auto coords = std::views::iota(0zu, GridSize * GridSize) | std::views::transform(to_coord);
+        
+        for (const auto& position : coords)
         {
-            for (size_t x = 0; x < GridSize; x++)
-            {
-                b[x, y] = space_from_coords(x, y);
-            }
+            b[position] = space_from_coords(position.x, position.y);
         }
 
         size_t y = 0;

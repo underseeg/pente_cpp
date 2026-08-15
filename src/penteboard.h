@@ -24,11 +24,34 @@ namespace cj::pente
         White
     };
 
+    // forward declaration to enable explicit cast oeprator
+    struct signed_coord;
+
     struct coord
     {
         std::size_t x;
         std::size_t y;
+
+        explicit constexpr operator signed_coord() const;
     };
+
+    struct signed_coord
+    {
+        std::ptrdiff_t x;
+        std::ptrdiff_t y;
+
+        explicit constexpr operator coord() const;
+    };
+
+    constexpr coord::operator signed_coord() const
+    {
+        return signed_coord {static_cast<std::ptrdiff_t>(x), static_cast<std::ptrdiff_t>(y)};
+    }
+
+    constexpr signed_coord::operator coord() const
+    {
+        return coord {static_cast<std::size_t>(x), static_cast<std::size_t>(y)};
+    }
 
     class board
     {

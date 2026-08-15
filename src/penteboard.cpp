@@ -15,12 +15,6 @@ namespace cj::pente
         /// @brief Maximum number of steps to take in a single direction when checking for contiguous pieces or captures.
         constexpr size_t MaxStepsPerDirection {4};
 
-        struct signed_coord
-        {
-            ptrdiff_t x;
-            ptrdiff_t y;
-        };
-
         constexpr array<signed_coord, 4> AxisDirections {{
             {1,  0}, // Horizontal axis
             {0,  1}, // Vertical axis
@@ -28,59 +22,9 @@ namespace cj::pente
             {1, -1} // Rising diagonal axis (top-right to bottom-left)
         }};
 
-        constexpr signed_coord to_signed(coord coord)
-        {
-            return signed_coord {
-                .x = static_cast<ptrdiff_t>(coord.x),
-                .y = static_cast<ptrdiff_t>(coord.y)
-            };
-        }
-
-        constexpr coord to_unsigned(signed_coord coord)
-        {
-            return pente::coord {
-                .x = static_cast<std::size_t>(coord.x),
-                .y = static_cast<std::size_t>(coord.y)
-            };
-        }
-
-        constexpr signed_coord operator+(coord coord, signed_coord delta)
-        {
-            return signed_coord {
-                .x = static_cast<ptrdiff_t>(coord.x) + delta.x,
-                .y = static_cast<ptrdiff_t>(coord.y) + delta.y
-            };
-        }
-
-        constexpr signed_coord operator+(signed_coord coord, signed_coord delta)
-        {
-            return signed_coord {
-                .x = coord.x + delta.x,
-                .y = coord.y + delta.y
-            };
-        }
-
-        constexpr signed_coord operator*(signed_coord coord, ptrdiff_t scale)
-        {
-            return signed_coord {
-                .x = coord.x * scale,
-                .y = coord.y * scale
-            };
-        }
-
-        constexpr signed_coord operator-(signed_coord coord)
-        {
-            return signed_coord {
-                .x = -coord.x,
-                .y = -coord.y
-            };
-        }
-
-        // this belongs next to the other one
-        constexpr signed_coord operator*(signed_coord coord, std::size_t scale)
-        {
-            return coord * static_cast<ptrdiff_t>(scale);
-        }
+        constexpr signed_coord operator+(signed_coord coord, signed_coord delta) { return signed_coord {coord.x + delta.x, coord.y + delta.y}; }
+        constexpr signed_coord operator*(signed_coord coord, ptrdiff_t scale) { return signed_coord {coord.x * scale, coord.y * scale}; }
+        constexpr signed_coord operator-(signed_coord coord) { return signed_coord {-coord.x, -coord.y}; }
 
         std::size_t max_steps_to_edge(std::size_t point, std::ptrdiff_t delta)
         {
@@ -99,9 +43,9 @@ namespace cj::pente
             return min(maxX, maxY);
         }
 
-        signed_coord to_end_point(coord start, signed_coord step, std::ptrdiff_t length)
+        signed_coord advance(coord start, signed_coord step, std::ptrdiff_t length)
         {
-            return start + (step * (length - 1));
+            return static_cast<signed_coord>(start) + step * length;
         }
 
         // define a concept for the board type so ray can handle both const and non-const boards
@@ -121,9 +65,9 @@ namespace cj::pente
 
             // returns a space& or const space& depending on whether board is const or not
             return views::iota(0zu, length)
-                | views::transform([=, &board](size_t step) -> decltype(auto) {
-                    const auto position = start + (rayDirection * step);
-                    return board[to_unsigned(position)]; // start and length are guaranteed to be in bounds
+                | views::transform([=, &board](ptrdiff_t step) -> decltype(auto) {
+                    const auto position = advance(start, rayDirection, step);
+                    return board[static_cast<coord>(position)]; // start and length are guaranteed to be in bounds
                 });
         }
 
@@ -152,9 +96,9 @@ namespace cj::pente
 
         bool is_span_in_bounds(coord start, signed_coord axisDirection, std::ptrdiff_t length)
         {
-            const auto end = to_end_point(start, axisDirection, length);
+            const auto last = advance(start, axisDirection, length - 1);
             return start.x < GridSize && start.y < GridSize
-                && is_in_bounds(end.x, end.y);
+                && is_in_bounds(last.x, last.y);
         }
 
         // behaviour is undefined if space is Empty

@@ -12,9 +12,6 @@ namespace cj::pente
 
     namespace
     {
-        /// @brief Maximum number of steps to take in a single direction when checking for contiguous pieces or captures.
-        constexpr size_t MaxStepsPerDirection {4};
-
         constexpr array<signed_coord, 4> AxisDirections {{
             {1,  0}, // Horizontal axis
             {0,  1}, // Vertical axis
@@ -26,20 +23,25 @@ namespace cj::pente
         constexpr signed_coord operator*(signed_coord coord, ptrdiff_t scale) { return signed_coord {coord.x * scale, coord.y * scale}; }
         constexpr signed_coord operator-(signed_coord coord) { return signed_coord {-coord.x, -coord.y}; }
 
-        std::size_t max_steps_to_edge(std::size_t point, std::ptrdiff_t delta)
+        /// @brief Returns the distance in the given direction starting from `point`
+        ///        to the edge of the board, inclusive of the start.
+        /// @param point The starting point on a single axis
+        /// @param delta The offset indicating direction along the axis.
+        /// @return The distance to the edge of the board in the given direction, inclusive of the start.
+        std::size_t distance_to_edge(std::size_t point, std::ptrdiff_t delta)
         {
             if (delta > 0)
-                return (GridSize - 1) - point;
+                return GridSize - point;
             else if (delta < 0)
-                return point;
+                return point + 1;
             else
-                return (GridSize - 1);
+                return GridSize;
         }
 
-        std::size_t ray_steps_to_edge(coord position, signed_coord rayDirection)
+        std::size_t distance_to_edge(coord position, signed_coord rayDirection)
         {
-            const auto maxX = max_steps_to_edge(position.x, rayDirection.x);
-            const auto maxY = max_steps_to_edge(position.y, rayDirection.y);
+            const auto maxX = distance_to_edge(position.x, rayDirection.x);
+            const auto maxY = distance_to_edge(position.y, rayDirection.y);
             return min(maxX, maxY);
         }
 
@@ -61,7 +63,8 @@ namespace cj::pente
         /// @return A range of board positions in the specified direction.
         auto ray(board_type auto& board, coord start, signed_coord rayDirection)
         {
-            const size_t length = min(ray_steps_to_edge(start, rayDirection), MaxStepsPerDirection) + 1u;
+            constexpr size_t MaxRayLength {5};
+            const size_t length = min(distance_to_edge(start, rayDirection), MaxRayLength);
 
             // returns a space& or const space& depending on whether board is const or not
             return views::iota(0zu, length)

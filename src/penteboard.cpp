@@ -58,31 +58,24 @@ namespace cj::pente
             return static_cast<ptrdiff_t>(start) + ((length - 1) * step);
         }
 
+        // define a concept for the board type so ray can handle both const and non-const boards
+        template <typename T>
+        concept board_type = std::same_as<std::remove_cvref_t<T>, board>;
+
         /// @brief Generates a range of board positions in a specified direction from a starting point.
         ///         Behaviour is undefined if (x, y) is out of bounds.
-        /// @param boardView The view of the board.
+        /// @param board The board.
         /// @param x The starting x-coordinate.
         /// @param y The starting y-coordinate.
         /// @param rayDirection The direction in which to generate the range.
         /// @return A range of board positions in the specified direction.
-        auto ray(board& board, std::size_t x, std::size_t y, direction rayDirection)
+        auto ray(board_type auto& board, std::size_t x, std::size_t y, direction rayDirection)
         {
             const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
 
+            // returns a space& or const space& depending on whether board is const or not
             return views::iota(0z, length)
-                | views::transform([=, &board](ptrdiff_t step) -> space& {
-                    const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
-                    const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
-                    return board[rayX, rayY];
-                });
-        }
-
-        auto ray(const board& board, std::size_t x, std::size_t y, direction rayDirection)
-        {
-            const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
-
-            return views::iota(0z, length)
-                | views::transform([=, &board](ptrdiff_t step) -> const space& {
+                | views::transform([=, &board](ptrdiff_t step) -> decltype(auto) {
                     const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
                     const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
                     return board[rayX, rayY];

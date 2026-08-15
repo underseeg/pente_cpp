@@ -14,20 +14,24 @@ add_library(pente_board
 
 target_include_directories(pente_board PUBLIC src)
 
-# treat warnings as errors
-target_compile_options(pente_board PRIVATE -Werror)
-
-# enable common warnings
-target_compile_options(pente_board PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-    -Wconversion
-    -Wsign-conversion
-    -Wshadow
-    -Wold-style-cast
-    -Wuseless-cast
-)
+if(MSVC)
+    # warnings as errors, level 4 warnings
+    target_compile_options(pente_board PRIVATE /WX)
+    target_compile_options(pente_board PRIVATE /W4)
+else()
+    # warnings as errors, common warnings for GCC
+    target_compile_options(pente_board PRIVATE -Werror)
+    target_compile_options(pente_board PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wconversion
+        -Wsign-conversion
+        -Wshadow
+        -Wold-style-cast
+        -Wuseless-cast
+    )
+endif()
 
 ##### pente application
 

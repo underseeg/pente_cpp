@@ -8,7 +8,7 @@
 namespace cj::pente
 {
     constexpr std::size_t GridSize {19};
-    constexpr auto BoardCentre = GridSize / 2;
+    constexpr auto BoardCentre {GridSize / 2};
 
     enum class piece
     {
@@ -55,7 +55,6 @@ namespace cj::pente
     class board
     {
     public:
-
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if (x, y) is out of bounds.
         /// @param x The x-coordinate of the space.
         /// @param y The y-coordinate of the space.

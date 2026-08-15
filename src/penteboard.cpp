@@ -109,7 +109,7 @@ namespace cj::pente
 
         unsigned int capture_pairs_along_direction(board& board, coord start, signed_coord axisDirection)
         {
-            constexpr ptrdiff_t CaptureLength = 4;
+            constexpr ptrdiff_t CaptureLength {4};
             if (!is_span_in_bounds(start, axisDirection, CaptureLength))
             {
                 return 0u;
@@ -139,7 +139,7 @@ namespace cj::pente
 
     unsigned int apply_pair_captures(board& board, coord playedPosition)
     {
-        unsigned int capturedPieces = 0;
+        unsigned int capturedPieces {0};
 
         for (const auto& axisDirection : AxisDirections)
         {

@@ -182,7 +182,7 @@ int main()
     while (true)
     {
         print_board(board);
-        cout << "Current turn: " << to_string(currentPlayer) << endl;
+        cout << "Current turn: " << to_string(currentPlayer) << endl << endl;
 
         // accept input for next move
         auto [x, y] = next_move_from_input();

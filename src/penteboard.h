@@ -24,9 +24,6 @@ namespace cj::pente
         White
     };
 
-    using board_array = std::array<space, GridSize * GridSize>;
-    using board_view = std::mdspan<space, std::extents<std::size_t, GridSize, GridSize>>;
-
     class board
     {
     public:
@@ -57,6 +54,9 @@ namespace cj::pente
         }
 
     private:
+        using board_array = std::array<space, GridSize * GridSize>;
+        using board_view = std::mdspan<space, std::extents<std::size_t, GridSize, GridSize>>;
+
         board_array data{};
         const board_view view{data.data()};
     };

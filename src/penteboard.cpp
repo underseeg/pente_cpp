@@ -21,70 +21,65 @@ namespace cj::pente
             ptrdiff_t y;
         };
 
-        struct offset
-        {
-            ptrdiff_t dx;
-            ptrdiff_t dy;
-        };
-
-        constexpr array<offset, 4> AxisDirections {{
+        constexpr array<signed_coord, 4> AxisDirections {{
             {1,  0}, // Horizontal axis
             {0,  1}, // Vertical axis
             {1,  1}, // Falling diagonal axis (top-left to bottom-right)
             {1, -1} // Rising diagonal axis (top-right to bottom-left)
         }};
 
-        constexpr signed_coord to_signed(coord position)
+        constexpr signed_coord to_signed(coord coord)
         {
             return signed_coord {
-                .x = static_cast<ptrdiff_t>(position.x),
-                .y = static_cast<ptrdiff_t>(position.y)
+                .x = static_cast<ptrdiff_t>(coord.x),
+                .y = static_cast<ptrdiff_t>(coord.y)
             };
         }
 
-        constexpr coord to_unsigned(signed_coord position)
+        constexpr coord to_unsigned(signed_coord coord)
         {
-            return coord {
-                .x = static_cast<std::size_t>(position.x),
-                .y = static_cast<std::size_t>(position.y)
+            return pente::coord {
+                .x = static_cast<std::size_t>(coord.x),
+                .y = static_cast<std::size_t>(coord.y)
             };
         }
 
-        constexpr signed_coord operator+(coord position, offset delta)
-        {
-            return signed_coord {
-                .x = static_cast<ptrdiff_t>(position.x) + delta.dx,
-                .y = static_cast<ptrdiff_t>(position.y) + delta.dy
-            };
-        }
-
-        constexpr signed_coord operator+(signed_coord position, offset delta)
+        constexpr signed_coord operator+(coord coord, signed_coord delta)
         {
             return signed_coord {
-                .x = position.x + delta.dx,
-                .y = position.y + delta.dy
+                .x = static_cast<ptrdiff_t>(coord.x) + delta.x,
+                .y = static_cast<ptrdiff_t>(coord.y) + delta.y
             };
         }
 
-        constexpr offset operator*(offset delta, ptrdiff_t scale)
+        constexpr signed_coord operator+(signed_coord coord, signed_coord delta)
         {
-            return offset {
-                .dx = delta.dx * scale,
-                .dy = delta.dy * scale
+            return signed_coord {
+                .x = coord.x + delta.x,
+                .y = coord.y + delta.y
             };
         }
 
-        constexpr offset opposite(offset axisOffset)
+        constexpr signed_coord operator*(signed_coord coord, ptrdiff_t scale)
         {
-            return offset {
-                .dx = -axisOffset.dx,
-                .dy = -axisOffset.dy
+            return signed_coord {
+                .x = coord.x * scale,
+                .y = coord.y * scale
             };
         }
 
-        constexpr offset operator*(offset delta, std::size_t scale)
+        constexpr signed_coord operator-(signed_coord coord)
         {
-            return delta * static_cast<ptrdiff_t>(scale);
+            return signed_coord {
+                .x = -coord.x,
+                .y = -coord.y
+            };
+        }
+
+        // this belongs next to the other one
+        constexpr signed_coord operator*(signed_coord coord, std::size_t scale)
+        {
+            return coord * static_cast<ptrdiff_t>(scale);
         }
 
         std::size_t max_steps_to_edge(std::size_t point, std::ptrdiff_t delta)
@@ -97,14 +92,14 @@ namespace cj::pente
                 return (GridSize - 1);
         }
 
-        std::size_t ray_steps_to_edge(coord position, offset rayDirection)
+        std::size_t ray_steps_to_edge(coord position, signed_coord rayDirection)
         {
-            const auto maxX = max_steps_to_edge(position.x, rayDirection.dx);
-            const auto maxY = max_steps_to_edge(position.y, rayDirection.dy);
+            const auto maxX = max_steps_to_edge(position.x, rayDirection.x);
+            const auto maxY = max_steps_to_edge(position.y, rayDirection.y);
             return min(maxX, maxY);
         }
 
-        signed_coord to_end_point(coord start, offset step, std::ptrdiff_t length)
+        signed_coord to_end_point(coord start, signed_coord step, std::ptrdiff_t length)
         {
             return start + (step * (length - 1));
         }
@@ -120,7 +115,7 @@ namespace cj::pente
         /// @param y The starting y-coordinate.
         /// @param rayDirection The direction in which to generate the range.
         /// @return A range of board positions in the specified direction.
-        auto ray(board_type auto& board, coord start, offset rayDirection)
+        auto ray(board_type auto& board, coord start, signed_coord rayDirection)
         {
             const size_t length = min(ray_steps_to_edge(start, rayDirection), MaxStepsPerDirection) + 1u;
 
@@ -132,7 +127,7 @@ namespace cj::pente
                 });
         }
 
-        auto contiguous_matches_from_origin(const board& board, coord origin, offset axisDirection)
+        auto contiguous_matches_from_origin(const board& board, coord origin, signed_coord axisDirection)
         {
             const auto playerSpace = board[origin];
             const auto contiguous_matches = [playerSpace](const auto& range)
@@ -147,15 +142,15 @@ namespace cj::pente
             return contiguous_matches(ray(board, origin, axisDirection));
         }
 
-        bool axis_has_five_in_a_row(const board& board, coord origin, offset axisDirection)
+        bool axis_has_five_in_a_row(const board& board, coord origin, signed_coord axisDirection)
         {
             const auto forwardCount = contiguous_matches_from_origin(board, origin, axisDirection);
-            const auto reverseCount = contiguous_matches_from_origin(board, origin, opposite(axisDirection));
+            const auto reverseCount = contiguous_matches_from_origin(board, origin, -axisDirection);
 
             return (forwardCount + reverseCount - 1) >= 5;
         }
 
-        bool is_span_in_bounds(coord start, offset axisDirection, std::ptrdiff_t length)
+        bool is_span_in_bounds(coord start, signed_coord axisDirection, std::ptrdiff_t length)
         {
             const auto end = to_end_point(start, axisDirection, length);
             return start.x < GridSize && start.y < GridSize
@@ -168,7 +163,7 @@ namespace cj::pente
             return (space == space::Black ? space::White : space::Black);
         }
 
-        unsigned int capture_along_axis(board& board, coord start, offset axisDirection)
+        unsigned int capture_along_axis(board& board, coord start, signed_coord axisDirection)
         {
             constexpr ptrdiff_t CaptureLength = 4;
             if (!is_span_in_bounds(start, axisDirection, CaptureLength))
@@ -205,7 +200,7 @@ namespace cj::pente
         for (const auto& axisDirection : AxisDirections)
         {
             capturedPieces += capture_along_axis(board, playedPosition, axisDirection);
-            capturedPieces += capture_along_axis(board, playedPosition, opposite(axisDirection));
+            capturedPieces += capture_along_axis(board, playedPosition, -axisDirection);
         }
 
         return capturedPieces;
@@ -221,7 +216,7 @@ namespace cj::pente
 
     bool check_five_in_a_row(const board& board, coord playedPosition)
     {
-        return ranges::any_of(AxisDirections, [&](const offset& axisDirection) {
+        return ranges::any_of(AxisDirections, [&](const signed_coord& axisDirection) {
             return axis_has_five_in_a_row(board, playedPosition, axisDirection);
         });
     }

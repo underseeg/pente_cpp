@@ -61,11 +61,11 @@ namespace cj::pente::move_parser
     // parses up down left right and distance from centre - "R3U2" is 3 spaces to the right and 2 spaces up from the
     // centre of the board. "O" is centre of the board
     // invalid parse results are returned as an unexpected value with a MoveParseError enum
-    std::expected<std::pair<std::ptrdiff_t, std::ptrdiff_t>, MoveParseError> parse_move_from_string(const std::string& input)
+    std::expected<coord, MoveParseError> parse_move_from_string(const std::string& input)
     {
         if (input.size() == 1 && toupper(static_cast<unsigned char>(input[0])) == 'O')
         {
-            return pair{BoardCentre, BoardCentre};
+            return coord{BoardCentre, BoardCentre};
         }
 
         auto x = BoardCentre;
@@ -132,11 +132,11 @@ namespace cj::pente::move_parser
             return unexpected{MoveParseError::OutOfBounds};
         }
 
-        return pair{x, y};
+        return coord{x, y};
     }
 }
 
-std::pair<std::ptrdiff_t, std::ptrdiff_t> next_move_from_input()
+coord next_move_from_input()
 {
     while (true)
     {
@@ -185,20 +185,20 @@ int main()
         cout << "Current turn: " << to_string(currentPlayer) << endl << endl;
 
         // accept input for next move
-        auto [x, y] = next_move_from_input();
+        coord position = next_move_from_input();
 
         // retry if the space is already occupied
-        if (board[x, y] != space::Empty)
+        if (board[position] != space::Empty)
         {
             cout << "That space is already occupied. Try again." << endl;
             continue;
         }
 
         // place piece on board
-        board[x, y] = to_space(currentPlayer);
+        board[position] = to_space(currentPlayer);
 
         // check for captures
-        const auto capturedPieces = apply_captures(board, x, y);
+        const auto capturedPieces = apply_captures(board, position);
         const auto [totalCapturedPieces, hasWonByCaptures] = add_captured_pieces(capturePots, currentPlayer, capturedPieces);
 
         if (capturedPieces > 0)
@@ -214,7 +214,7 @@ int main()
         }
 
         // check for 5 in a row
-        bool hasFiveInARow = check_five_in_a_row(board, x, y);
+        bool hasFiveInARow = check_five_in_a_row(board, position);
         if (hasFiveInARow)
         {
             cout << to_string(currentPlayer) << " wins by getting 5 in a row!" << endl;

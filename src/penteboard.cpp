@@ -198,15 +198,14 @@ namespace cj::pente
             && y < static_cast<std::ptrdiff_t>(GridSize);
     }
 
-    unsigned int apply_captures(board& board, std::size_t x, std::size_t y)
+    unsigned int apply_captures(board& board, coord playedPosition)
     {
         unsigned int capturedPieces = 0;
-        const coord origin {x, y};
 
         for (const auto& axisDirection : AxisDirections)
         {
-            capturedPieces += capture_along_axis(board, origin, axisDirection);
-            capturedPieces += capture_along_axis(board, origin, opposite(axisDirection));
+            capturedPieces += capture_along_axis(board, playedPosition, axisDirection);
+            capturedPieces += capture_along_axis(board, playedPosition, opposite(axisDirection));
         }
 
         return capturedPieces;
@@ -220,12 +219,10 @@ namespace cj::pente
         return {totalCapturedPieces, (totalCapturedPieces / 2) >= 5};
     }
 
-    bool check_five_in_a_row(const board& board, std::size_t x, std::size_t y)
+    bool check_five_in_a_row(const board& board, coord playedPosition)
     {
-        const coord origin {x, y};
-
         return ranges::any_of(AxisDirections, [&](const offset& axisDirection) {
-            return axis_has_five_in_a_row(board, origin, axisDirection);
+            return axis_has_five_in_a_row(board, playedPosition, axisDirection);
         });
     }
 }

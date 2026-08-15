@@ -49,7 +49,7 @@ namespace cj::pente
         {
             return std::forward_like<decltype(self)>(self.view[y, x]);
         }
-        
+
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if position is out of bounds.
         /// @param position The coordinates of the space.
         /// @return A cv-qualified reference to the space at the given coordinates.
@@ -104,7 +104,7 @@ namespace cj::pente
     /// @param x The x-coordinate of the last move.
     /// @param y The y-coordinate of the last move.
     /// @return The number of pieces captured as a result of the last move.
-    unsigned int apply_captures(board& board, std::size_t x, std::size_t y);
+    unsigned int apply_captures(board& board, coord playedPosition);
 
     /// @brief Adds captured pieces to the player's capture pot and checks for a win by captures.
     /// @param pots The capture pots to update.
@@ -118,5 +118,5 @@ namespace cj::pente
     /// @param x The x-coordinate of the last move.
     /// @param y The y-coordinate of the last move.
     /// @return True if the last move results in five contiguous pieces of the same color, false otherwise.
-    bool check_five_in_a_row(const board& board, std::size_t x, std::size_t y);
+    bool check_five_in_a_row(const board& board, coord playedPosition);
 }

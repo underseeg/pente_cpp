@@ -148,6 +148,8 @@ coord next_move_from_input()
             throw runtime_error{"Failed to read move input"};
         }
 
+        cout << endl;
+
         const auto parseResult = move_parser::parse_move_from_string(input);
 
         if (parseResult.has_value())
@@ -182,7 +184,7 @@ int main()
     while (true)
     {
         print_board(board);
-        cout << "Current turn: " << to_string(currentPlayer) << endl << endl;
+        cout << "Current turn: " << to_string(currentPlayer) << endl;
 
         // accept input for next move
         coord position = next_move_from_input();

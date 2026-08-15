@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <mdspan>
 #include <span>
 #include <ranges>
 #include <utility>
@@ -56,13 +55,6 @@ namespace cj::pente
     class board
     {
     public:
-        board() = default;
-        // Could implement but don't need. The view member uses ref semantics, and exists with the assumption that it's an optimisation due to assumed frequent use of the operator[]
-        // TODO test assumption in terms of size and performance
-        board(const board& other) = delete;
-        board(board&& other) noexcept = delete;
-        board& operator=(const board& other) = delete;
-        board& operator=(board&& other) noexcept = delete;
 
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if (x, y) is out of bounds.
         /// @param x The x-coordinate of the space.
@@ -70,7 +62,7 @@ namespace cj::pente
         /// @return A cv-qualified reference to the space at the given coordinates.
         auto&& operator[](this auto&& self, std::size_t x, std::size_t y)
         {
-            return std::forward_like<decltype(self)>(self.view[y, x]);
+            return self.data[y * GridSize + x];
         }
 
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if position is out of bounds.
@@ -78,7 +70,7 @@ namespace cj::pente
         /// @return A cv-qualified reference to the space at the given coordinates.
         auto&& operator[](this auto&& self, coord position)
         {
-            return std::forward_like<decltype(self)>(self.view[position.y, position.x]);
+            return self.data[position.y * GridSize + position.x];
         }
 
         /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.
@@ -92,11 +84,7 @@ namespace cj::pente
         }
 
     private:
-        using board_array = std::array<space, GridSize * GridSize>;
-        using board_view = std::mdspan<space, std::extents<std::size_t, GridSize, GridSize>>;
-
-        board_array data{};
-        const board_view view{data.data()};
+        std::array<space, GridSize * GridSize> data{};
     };
 
     struct capture_pots

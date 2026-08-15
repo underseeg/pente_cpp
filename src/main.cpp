@@ -198,7 +198,7 @@ int main()
         board[position] = to_space(currentPlayer);
 
         // check for captures
-        const auto capturedPieces = apply_captures(board, position);
+        const auto capturedPieces = apply_pair_captures(board, position);
         const auto [totalCapturedPieces, hasWonByCaptures] = add_captured_pieces(capturePots, currentPlayer, capturedPieces);
 
         if (capturedPieces > 0)

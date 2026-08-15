@@ -121,13 +121,13 @@ namespace cj::pente
     /// @return True if the coordinates are within bounds, false otherwise.
     bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y);
 
-    /// @brief Applies captures on the board based on the last move made at (x, y).
+    /// @brief Applies pair captures on the board based on the last move made at (x, y).
     /// Behaviour is undefined if the space at (x, y) is Empty.
-    /// @param board The board on which to apply captures.
+    /// @param board The board on which to apply pair captures.
     /// @param x The x-coordinate of the last move.
     /// @param y The y-coordinate of the last move.
     /// @return The number of pieces captured as a result of the last move.
-    unsigned int apply_captures(board& board, coord playedPosition);
+    unsigned int apply_pair_captures(board& board, coord playedPosition);
 
     /// @brief Adds captured pieces to the player's capture pot and checks for a win by captures.
     /// @param pots The capture pots to update.

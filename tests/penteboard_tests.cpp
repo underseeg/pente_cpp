@@ -100,7 +100,7 @@ namespace
         b[4, 5] = space::White;
         b[5, 5] = space::Black;
 
-        const auto captured = apply_captures(b, {2, 5});
+        const auto captured = apply_pair_captures(b, {2, 5});
 
         require(captured == 2u, "One horizontal capture should remove two pieces");
         require(b[3, 5] == space::Empty, "First captured piece should be removed");
@@ -122,7 +122,7 @@ namespace
         b[7, 8] = space::White;
         b[8, 8] = space::Black;
 
-        const auto captured = apply_captures(b, {5, 8});
+        const auto captured = apply_pair_captures(b, {5, 8});
 
         require(captured == 4u, "Captures on both horizontal directions should remove four pieces");
         require(b[3, 8] == space::Empty, "Left captured piece should be removed");
@@ -140,7 +140,7 @@ namespace
         b[6, 6] = space::Black;
         b[7, 7] = space::White;
 
-        const auto captured = apply_captures(b, {4, 4});
+        const auto captured = apply_pair_captures(b, {4, 4});
 
         require(captured == 2u, "One falling-diagonal capture should remove two pieces");
         require(b[5, 5] == space::Empty, "Diagonal captured piece should be removed");
@@ -155,7 +155,7 @@ namespace
         b[1, 0] = space::White;
         b[2, 0] = space::White;
 
-        const auto captured = apply_captures(b, {0, 0});
+        const auto captured = apply_pair_captures(b, {0, 0});
 
         require(captured == 0u, "Open pattern at edge should not capture");
         require(b[1, 0] == space::White, "No capture should leave board unchanged");

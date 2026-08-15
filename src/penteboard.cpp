@@ -107,7 +107,7 @@ namespace cj::pente
             return (space == space::Black ? space::White : space::Black);
         }
 
-        unsigned int capture_along_axis(board& board, coord start, signed_coord axisDirection)
+        unsigned int capture_pairs_along_direction(board& board, coord start, signed_coord axisDirection)
         {
             constexpr ptrdiff_t CaptureLength = 4;
             if (!is_span_in_bounds(start, axisDirection, CaptureLength))
@@ -137,14 +137,14 @@ namespace cj::pente
             && y < static_cast<std::ptrdiff_t>(GridSize);
     }
 
-    unsigned int apply_captures(board& board, coord playedPosition)
+    unsigned int apply_pair_captures(board& board, coord playedPosition)
     {
         unsigned int capturedPieces = 0;
 
         for (const auto& axisDirection : AxisDirections)
         {
-            capturedPieces += capture_along_axis(board, playedPosition, axisDirection);
-            capturedPieces += capture_along_axis(board, playedPosition, -axisDirection);
+            capturedPieces += capture_pairs_along_direction(board, playedPosition, axisDirection);
+            capturedPieces += capture_pairs_along_direction(board, playedPosition, -axisDirection);
         }
 
         return capturedPieces;

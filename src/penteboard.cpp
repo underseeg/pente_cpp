@@ -71,14 +71,14 @@ namespace cj::pente
         /// @return A range of board positions in the specified direction.
         auto ray(board_type auto& board, std::size_t x, std::size_t y, direction rayDirection)
         {
-            const ptrdiff_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1;
+            const size_t length = min(ray_steps_to_edge(x, y, rayDirection), MaxStepsPerDirection) + 1u;
 
             // returns a space& or const space& depending on whether board is const or not
-            return views::iota(0z, length)
-                | views::transform([=, &board](ptrdiff_t step) -> decltype(auto) {
-                    const size_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * step);
-                    const size_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * step);
-                    return board[rayX, rayY];
+            return views::iota(0zu, length)
+                | views::transform([=, &board](size_t step) -> decltype(auto) {
+                    const ptrdiff_t rayX = static_cast<ptrdiff_t>(x) + (rayDirection.dx * static_cast<ptrdiff_t>(step));
+                    const ptrdiff_t rayY = static_cast<ptrdiff_t>(y) + (rayDirection.dy * static_cast<ptrdiff_t>(step));
+                    return board[static_cast<size_t>(rayX), static_cast<size_t>(rayY)];
                 });
         }
 
@@ -109,7 +109,8 @@ namespace cj::pente
         {
             const auto endX = to_end_point(startX, axisDirection.dx, length);
             const auto endY = to_end_point(startY, axisDirection.dy, length);
-            return is_in_bounds(startX, startY) && is_in_bounds(endX, endY);
+            return is_in_bounds(static_cast<std::ptrdiff_t>(startX), static_cast<std::ptrdiff_t>(startY))
+                && is_in_bounds(endX, endY);
         }
 
         // behaviour is undefined if space is Empty
@@ -144,8 +145,8 @@ namespace cj::pente
     bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y)
     {
         return x >= 0 && y >= 0
-            && x < GridSize
-            && y < GridSize;
+            && x < static_cast<std::ptrdiff_t>(GridSize)
+            && y < static_cast<std::ptrdiff_t>(GridSize);
     }
 
     unsigned int apply_captures(board& board, std::size_t x, std::size_t y)

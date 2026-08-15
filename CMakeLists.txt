@@ -6,17 +6,38 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+##### pente code library
+
 add_library(pente_board
     src/penteboard.cpp
 )
 
 target_include_directories(pente_board PUBLIC src)
 
+# treat warnings as errors
+target_compile_options(pente_board PRIVATE -Werror)
+
+# enable common warnings
+target_compile_options(pente_board PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wsign-conversion
+    -Wshadow
+    -Wold-style-cast
+    -Wuseless-cast
+)
+
+##### pente application
+
 add_executable(pente_app
     src/main.cpp
 )
 
 target_link_libraries(pente_app PRIVATE pente_board)
+
+##### pente tests
 
 enable_testing()
 

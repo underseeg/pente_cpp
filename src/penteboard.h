@@ -108,11 +108,10 @@ namespace cj::pente
     /// @return True if the coordinates are within bounds, false otherwise.
     bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y);
 
-    /// @brief Applies pair captures on the board based on the last move made at (x, y).
-    /// Behaviour is undefined if the space at (x, y) is Empty.
+    /// @brief Applies pair captures on the board based on the last move made at the given position.
+    /// Behaviour is undefined if the space at the given position is Empty.
     /// @param board The board on which to apply pair captures.
-    /// @param x The x-coordinate of the last move.
-    /// @param y The y-coordinate of the last move.
+    /// @param playedPosition The coordinates of the last move.
     /// @return The number of pieces captured as a result of the last move.
     unsigned int apply_pair_captures(board& board, coord playedPosition);
 
@@ -123,10 +122,9 @@ namespace cj::pente
     /// @return A pair containing the total captured pieces and a boolean indicating if the player has won by captures.
     std::pair<unsigned int, bool> add_captured_pieces(capture_pots& pots, piece player, unsigned int piecesToAdd);
 
-    /// @brief Checks if the last move made at (x, y) results in five contiguous pieces of the same color in a row.
+    /// @brief Checks if the last move made at the given position results in five contiguous pieces of the same color in a row.
     /// @param board The board to check.
-    /// @param x The x-coordinate of the last move.
-    /// @param y The y-coordinate of the last move.
+    /// @param playedPosition The coordinates of the last move.
     /// @return True if the last move results in five contiguous pieces of the same color, false otherwise.
     bool check_five_in_a_row(const board& board, coord playedPosition);
 }

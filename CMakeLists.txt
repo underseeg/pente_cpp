@@ -71,6 +71,7 @@ if(ENABLE_CPPCHECK)
         --suppress=missingIncludeSystem
         --suppress=missingInclude
         --suppress=checkersReport
+        --suppress=unmatchedSuppression
         --inline-suppr
     )
 

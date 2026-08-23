@@ -28,6 +28,7 @@ namespace cj::pente
         /// @param point The starting point on a single axis
         /// @param delta The offset indicating direction along the axis.
         /// @return The distance to the edge of the board in the given direction, inclusive of the start.
+        ///         If the delta is zero the edge would never be reached, and GridSize is returned.
         std::size_t distance_to_edge(std::size_t point, std::ptrdiff_t delta)
         {
             if (delta > 0)
@@ -40,9 +41,9 @@ namespace cj::pente
 
         std::size_t distance_to_edge(coord position, signed_coord rayDirection)
         {
-            const auto maxX = distance_to_edge(position.x, rayDirection.x);
-            const auto maxY = distance_to_edge(position.y, rayDirection.y);
-            return min(maxX, maxY);
+            const auto xDistance = distance_to_edge(position.x, rayDirection.x);
+            const auto yDistance = distance_to_edge(position.y, rayDirection.y);
+            return min(xDistance, yDistance);
         }
 
         signed_coord advance(coord start, signed_coord step, std::ptrdiff_t length)
@@ -55,10 +56,9 @@ namespace cj::pente
         concept board_type = std::same_as<std::remove_cvref_t<T>, board>;
 
         /// @brief Generates a range of board positions in a specified direction from a starting point.
-        ///         Behaviour is undefined if (x, y) is out of bounds.
+        ///         Behaviour is undefined if start is out of bounds.
         /// @param board The board.
-        /// @param x The starting x-coordinate.
-        /// @param y The starting y-coordinate.
+        /// @param start The starting coordinate.
         /// @param rayDirection The direction in which to generate the range.
         /// @return A range of board positions in the specified direction.
         auto ray(board_type auto& board, coord start, signed_coord rayDirection)
@@ -67,7 +67,7 @@ namespace cj::pente
             const size_t length = min(distance_to_edge(start, rayDirection), MaxRayLength);
 
             // returns a space& or const space& depending on whether board is const or not
-            return views::iota(0zu, length)
+            return views::iota(0z, static_cast<std::ptrdiff_t>(length))
                 | views::transform([=, &board](ptrdiff_t step) -> decltype(auto) {
                     const auto position = advance(start, rayDirection, step);
                     return board[static_cast<coord>(position)]; // start and length are guaranteed to be in bounds

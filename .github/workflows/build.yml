@@ -36,7 +36,9 @@ jobs:
           Get-Command cppcheck -All -ErrorAction SilentlyContinue
           where.exe cppcheck
           Get-Command cppcheck -All
+          'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
           refreshenv
+          cppcheck --version
 
       # CONFIGURE (Ubuntu)
       - name: Configure (Ubuntu)

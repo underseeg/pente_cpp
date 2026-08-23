@@ -53,14 +53,14 @@ namespace
 
     void test_is_in_bounds()
     {
-        require(is_in_bounds(0, 0), "(0,0) should be in bounds");
-        require(is_in_bounds(BoardCentre, BoardCentre), "Board centre should be in bounds");
-        require(is_in_bounds(GridSize - 1, GridSize - 1), "Last cell should be in bounds");
+        require(is_in_bounds(coord{0, 0}), "(0,0) should be in bounds");
+        require(is_in_bounds(coord{BoardCentre, BoardCentre}), "Board centre should be in bounds");
+        require(is_in_bounds(coord{GridSize - 1, GridSize - 1}), "Last cell should be in bounds");
 
-        require(!is_in_bounds(-1, 0), "(-1,0) should be out of bounds");
-        require(!is_in_bounds(0, -1), "(0,-1) should be out of bounds");
-        require(!is_in_bounds(GridSize, 0), "(GridSize,0) should be out of bounds");
-        require(!is_in_bounds(0, GridSize), "(0,GridSize) should be out of bounds");
+        require(!is_in_bounds(signed_coord{-1, 0}), "(-1,0) should be out of bounds");
+        require(!is_in_bounds(signed_coord{0, -1}), "(0,-1) should be out of bounds");
+        require(!is_in_bounds(coord{GridSize, 0}), "(GridSize,0) should be out of bounds");
+        require(!is_in_bounds(coord{0, GridSize}), "(0,GridSize) should be out of bounds");
     }
 
     void test_get_rows_matches_indexing()

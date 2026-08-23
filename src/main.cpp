@@ -127,7 +127,7 @@ namespace cj::pente::move_parser
             return unexpected{MoveParseError::InvalidFormat};
         }
 
-        if (!is_in_bounds(x, y))
+        if (!is_in_bounds(coord{x, y}))
         {
             return unexpected{MoveParseError::OutOfBounds};
         }

@@ -100,8 +100,8 @@ namespace cj::pente
         bool is_span_in_bounds(coord start, signed_coord axisDirection, std::ptrdiff_t length)
         {
             const auto last = advance(start, axisDirection, length - 1);
-            return start.x < GridSize && start.y < GridSize
-                && is_in_bounds(last.x, last.y);
+            return is_in_bounds(start)
+                && is_in_bounds(last);
         }
 
         // behaviour is undefined if space is Empty
@@ -133,11 +133,15 @@ namespace cj::pente
         }
     }
 
-    bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y)
+    bool is_in_bounds(coord position)
     {
-        return x >= 0 && y >= 0
-            && std::cmp_less(x, GridSize)
-            && std::cmp_less(y, GridSize);
+        return position.x < GridSize && position.y < GridSize;
+    }
+    bool is_in_bounds(signed_coord position)
+    {
+        return position.x >= 0 && position.y >= 0
+            && std::cmp_less(position.x, GridSize)
+            && std::cmp_less(position.y, GridSize);
     }
 
     unsigned int apply_pair_captures(board& board, coord playedPosition)

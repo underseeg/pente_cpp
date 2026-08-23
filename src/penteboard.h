@@ -103,10 +103,10 @@ namespace cj::pente
     }
 
     /// @brief Checks if the given coordinates are within the bounds of the board.
-    /// @param x The x-coordinate to check.
-    /// @param y The y-coordinate to check.
+    /// @param position The coordinates to check.
     /// @return True if the coordinates are within bounds, false otherwise.
-    bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y);
+    bool is_in_bounds(signed_coord position);
+    bool is_in_bounds(coord position);
 
     /// @brief Applies pair captures on the board based on the last move made at the given position.
     /// Behaviour is undefined if the space at the given position is Empty.

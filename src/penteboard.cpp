@@ -136,8 +136,8 @@ namespace cj::pente
     bool is_in_bounds(std::ptrdiff_t x, std::ptrdiff_t y)
     {
         return x >= 0 && y >= 0
-            && x < static_cast<std::ptrdiff_t>(GridSize)
-            && y < static_cast<std::ptrdiff_t>(GridSize);
+            && std::cmp_less(x, GridSize)
+            && std::cmp_less(y, GridSize);
     }
 
     unsigned int apply_pair_captures(board& board, coord playedPosition)

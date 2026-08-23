@@ -7,3 +7,9 @@ This is a Modern C++ implementation of the game Pente. It supports two players v
 There are basic unit tests for the game board and logic.
 
 The code in main is not intended to be clean, the subject of this codebase is the board and game logic.
+
+The CI build:
+
+* enables common warnings and treats them as errors
+* runs the unit tests
+* runs static analysis using cppcheck

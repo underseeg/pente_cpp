@@ -61,7 +61,7 @@ namespace cj::pente
         /// @return A cv-qualified reference to the space at the given coordinates.
         auto&& operator[](this auto&& self, std::size_t x, std::size_t y)
         {
-            return self.data[y * GridSize + x];
+            return std::forward<decltype(self)>(self).data[y * GridSize + x];
         }
 
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if position is out of bounds.
@@ -69,7 +69,7 @@ namespace cj::pente
         /// @return A cv-qualified reference to the space at the given coordinates.
         auto&& operator[](this auto&& self, coord position)
         {
-            return self.data[position.y * GridSize + position.x];
+            return std::forward<decltype(self)>(self).data[position.y * GridSize + position.x];
         }
 
         /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.

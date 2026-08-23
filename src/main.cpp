@@ -167,7 +167,7 @@ coord next_move_from_input()
     }
 }
 
-int main()
+void run_game()
 {
     board board{};
     
@@ -229,6 +229,19 @@ int main()
 
     // print final board state
     print_board(board);
+}
+
+int main()
+{
+    try
+    {
+        run_game();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "Fatal error: " << ex.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }

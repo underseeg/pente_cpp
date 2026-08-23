@@ -5,6 +5,7 @@ project(pente_app VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ##### pente code library
 
@@ -52,3 +53,33 @@ add_executable(penteboard_tests
 target_link_libraries(penteboard_tests PRIVATE pente_board)
 
 add_test(NAME penteboard_tests COMMAND penteboard_tests)
+
+##### cppcheck target
+
+option(ENABLE_CPPCHECK "Run static analysis" ON)
+
+if(ENABLE_CPPCHECK)
+    find_program(CPPCHECK_EXE NAMES cppcheck REQUIRED)
+    
+    set(CPPCHECK_OPTIONS
+        --project=${CMAKE_BINARY_DIR}/compile_commands.json
+        --enable=all
+        --inconclusive
+        --check-level=exhaustive
+        --force
+        --error-exitcode=1
+        --suppress=missingIncludeSystem
+        --suppress=missingInclude
+        --suppress=checkersReport
+        --inline-suppr
+    )
+
+    add_custom_target(cppcheck ALL
+        COMMAND
+            ${CPPCHECK_EXE}
+            ${CPPCHECK_OPTIONS}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running cppcheck static analysis"
+        VERBATIM
+    )
+endif()

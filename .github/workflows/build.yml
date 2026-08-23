@@ -32,7 +32,9 @@ jobs:
         run: |
           choco install cppcheck --no-progress
           cppcheck --version
-          & 'C:\ProgramData\chocolatey\bin\cppcheck.exe' --version
+          choco list --local-only cppcheck
+          Get-Command cppcheck -All -ErrorAction SilentlyContinue
+          where.exe cppcheck
           Get-Command cppcheck -All
           refreshenv
 

@@ -33,6 +33,7 @@ jobs:
           choco install cppcheck --no-progress
           cppcheck --version
           where cppcheck
+          refreshenv
 
       # CONFIGURE (Ubuntu)
       - name: Configure (Ubuntu)

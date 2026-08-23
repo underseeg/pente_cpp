@@ -32,7 +32,8 @@ jobs:
         run: |
           choco install cppcheck --no-progress
           cppcheck --version
-          where cppcheck
+          & 'C:\ProgramData\chocolatey\bin\cppcheck.exe' --version
+          Get-Command cppcheck -All
           refreshenv
 
       # CONFIGURE (Ubuntu)

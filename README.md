@@ -2,14 +2,14 @@
 
 [![Build Status](https://github.com/underseeg/pente_cpp/actions/workflows/build.yml/badge.svg)](https://github.com/underseeg/pente_cpp/actions/workflows/build.yml)
 
-This is a Modern C++ implementation of the game Pente. It supports two players via a command line interface.
+This is a C++23 implementation of the game Pente. It supports two players via a command line interface.
 
-There are basic unit tests for the game board and logic.
+This codebase is an exercise in writing Modern C++ and designing around algorithms rather than raw loops. The code in main is not intended to be clean, the subject of this exercise is the board and game logic in penteboard.h/cpp.
 
-The code in main is not intended to be clean, the subject of this codebase is the board and game logic.
+Readability & maintainability is favoured over pre-mature optimisation. This is a command line HCI after all; performance is not an issue.
 
-The CI build:
+The CI build validates on Windows and Ubuntu and does the following:
 
 * enables common warnings and treats them as errors
-* runs the unit tests
 * runs static analysis using cppcheck
+* runs unit tests on the board and game logic

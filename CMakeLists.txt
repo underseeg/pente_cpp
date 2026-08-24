@@ -67,6 +67,7 @@ if(ENABLE_CPPCHECK)
         --inconclusive
         --check-level=exhaustive
         --force
+        -i${CMAKE_SOURCE_DIR}/tests #exclude tests from cppcheck
         --error-exitcode=1
         --suppress=missingIncludeSystem
         --suppress=missingInclude

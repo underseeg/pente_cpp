@@ -70,9 +70,7 @@ if(ENABLE_CPPCHECK)
         -i${CMAKE_SOURCE_DIR}/tests #exclude tests from cppcheck
         --error-exitcode=1
         --suppress=missingIncludeSystem
-        --suppress=missingInclude
         --suppress=checkersReport
-        --suppress=unmatchedSuppression
         --inline-suppr
     )
 

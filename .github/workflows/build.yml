@@ -31,14 +31,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           choco install cppcheck --no-progress
-          cppcheck --version
-          choco list --local-only cppcheck
-          Get-Command cppcheck -All -ErrorAction SilentlyContinue
-          where.exe cppcheck
-          Get-Command cppcheck -All
           'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
-          refreshenv
-          cppcheck --version
+#          refreshenv
 
       # CONFIGURE (Ubuntu)
       - name: Configure (Ubuntu)

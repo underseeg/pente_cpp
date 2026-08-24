@@ -32,7 +32,6 @@ jobs:
         run: |
           choco install cppcheck --no-progress
           'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
-#          refreshenv
 
       # CONFIGURE (Ubuntu)
       - name: Configure (Ubuntu)

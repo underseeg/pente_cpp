@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <span>
 #include <ranges>
 
 namespace cj::pente

@@ -18,3 +18,5 @@ For the sake of practicing good practice, there is a CI build. It does the follo
   * Builds Doxygen documentation
 * On push to main
   * Publishes Doxygen documentation to GitHub Pages
+
+Documentation (again, just for demonstrating good practice): https://underseeg.github.io/pente_cpp/

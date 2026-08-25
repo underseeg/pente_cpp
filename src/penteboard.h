@@ -143,6 +143,8 @@ namespace cj::pente
     /// @param player The player who captured the pieces.
     /// @param piecesToAdd The number of pieces to add to the player's capture pot.
     /// @return A pair containing the total captured pieces and a boolean indicating if the player has won by captures.
+    ///
+    /// The win condition is true when `(total captured pieces / 2) >= 5`.
     std::pair<unsigned int, bool> add_captured_pieces(capture_pots& pots, piece player, unsigned int piecesToAdd);
 
     /// @brief Checks if the last move made at the given position results in five contiguous pieces of the same color in a row.

@@ -83,3 +83,23 @@ if(ENABLE_CPPCHECK)
         VERBATIM
     )
 endif()
+
+##### doxygen target
+
+option(ENABLE_DOXYGEN "Generate Doxygen API docs" ON)
+
+if(ENABLE_DOXYGEN)
+    find_package(Doxygen REQUIRED COMPONENTS dot)
+
+    set(DOXYGEN_IN ${CMAKE_SOURCE_DIR}/Doxyfile.in)
+    set(DOXYGEN_OUT ${CMAKE_BINARY_DIR}/Doxyfile)
+
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+
+    add_custom_target(doxygen ALL
+        COMMAND $<TARGET_FILE:Doxygen::doxygen> ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+endif()

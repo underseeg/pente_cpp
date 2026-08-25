@@ -8,8 +8,13 @@ This codebase is an exercise in writing Modern C++ and designing around algorith
 
 Readability & maintainability is favoured over pre-mature optimisation. This is a command line HCI after all; performance is not an issue.
 
-The CI build validates on Windows and Ubuntu and does the following:
+For the sake of practicing good practice, there is a CI build. It does the following:
 
-* enables common warnings and treats them as errors
-* runs static analysis using cppcheck
-* runs unit tests on the board and game logic
+* On push and PR
+  * Runs the build on Windows and Ubuntu
+  * Enables common warnings and treats them as errors
+  * Runs static analysis using cppcheck
+  * Runs unit tests on the board and game logic
+  * Builds Doxygen documentation
+* On push to main
+  * Publishes Doxygen documentation to GitHub Pages

@@ -23,7 +23,7 @@ jobs:
 # cmake build-essential
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_CPPCHECK=OFF
 
       - name: Build Doxygen target
         run: cmake --build build --target doxygen -j 4

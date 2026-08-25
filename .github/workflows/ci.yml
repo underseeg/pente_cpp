@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push: {}
+  pull_request: {}
+
+permissions:
+  contents: read
+  pages: write
+#  id-token: write
+
+jobs:
+  build:
+    name: Build, Test & Static Analysis
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-14 cppcheck
+
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install cppcheck --no-progress -y
+          'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
+
+      - name: Configure (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_DOXYGEN=OFF
+
+      - name: Configure (Windows)
+        if: matrix.os == 'windows-latest'
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DENABLE_DOXYGEN=OFF
+
+      - name: Build
+        run: cmake --build build -j 8
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure -C Debug
+
+  build-docs:
+    name: Build Docs (Doxygen)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Doxygen
+        run: |
+          set -x
+          DOXY_VERSION=1.18.0
+          RELEASE_TAG=Release_${DOXY_VERSION//./_}
+          URL="https://github.com/doxygen/doxygen/releases/download/${RELEASE_TAG}/doxygen-${DOXY_VERSION}.linux.bin.tar.gz"
+          wget -qO /tmp/doxygen.tar.gz "$URL"
+          sudo mkdir -p /opt/doxygen
+          sudo tar -C /opt/doxygen --strip-components=1 -xzf /tmp/doxygen.tar.gz
+          sudo ln -sf /opt/doxygen/bin/doxygen /usr/local/bin/doxygen
+          /usr/local/bin/doxygen --version
+          
+      - name : Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_CPPCHECK=OFF
+
+      - name: Build Doxygen target
+        run: cmake --build build --target doxygen -j 8
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/docs/html
+
+  deploy-pages:
+    name: Deploy Pages
+    needs: [build, build-docs]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

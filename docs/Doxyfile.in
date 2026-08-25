@@ -1,0 +1,32 @@
+# Doxyfile configuration template generated for CMake
+# Project
+PROJECT_NAME           = "Pente"
+PROJECT_BRIEF          = "Pente C++ project"
+OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs
+# Inputs
+INPUT                  = @CMAKE_SOURCE_DIR@/src, @CMAKE_SOURCE_DIR@/docs
+RECURSIVE              = YES
+FILE_PATTERNS          = *.cpp *.h *.md
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+VERBATIM_HEADERS       = NO
+SORT_MEMBER_DOCS       = NO
+SHOW_GROUPED_MEMB_INC  = YES
+SHOW_USED_FILES        = NO
+SHOW_FILES             = YES
+LAYOUT_FILE            = @CMAKE_SOURCE_DIR@/docs/DoxygenLayout.xml
+FULL_PATH_NAMES         = NO
+# Behaviour
+QUIET                  = YES
+WARNINGS               = YES
+WARN_AS_ERROR          = FAIL_ON_WARNINGS_PRINT
+EXTRACT_ALL            = NO
+# Cross-references
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = YES
+FULL_SIDEBAR           = YES
+# Dot/Graphviz (optional)
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 4
+DOT_IMAGE_FORMAT       = png

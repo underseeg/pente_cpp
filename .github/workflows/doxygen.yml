@@ -1,14 +1,12 @@
 name: Doxygen + Pages
 
 on:
-  push:
-    branches: [ main, doxy ]
-  pull_request:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
   pages: write
-  id-token: write
+#  id-token: write
 
 jobs:
   build-docs:
@@ -39,7 +37,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    if: github.ref == 'refs/heads/doxy' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

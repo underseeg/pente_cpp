@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push: {}
+  pull_request: {}
+
+permissions:
+  contents: read
+  pages: write
+#  id-token: write
+
+jobs:
+  build:
+    name: Build, Test & Static Analysis
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y g++-16 cppcheck
+
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install cppcheck --no-progress -y
+          'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
+
+      - name: Configure (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-16 -DENABLE_DOXYGEN=OFF
+
+      - name: Configure (Windows)
+        if: matrix.os == 'windows-latest'
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DENABLE_DOXYGEN=OFF
+
+      - name: Build
+        run: cmake --build build -j 8
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure -C Debug
+
+  build-docs:
+    name: Build Docs (Doxygen)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_CPPCHECK=OFF
+
+      - name: Build Doxygen target
+        run: cmake --build build --target doxygen -j 8
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/docs/html
+
+  deploy-pages:
+    name: Deploy Pages
+    needs: [build, build-docs]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -36,7 +36,7 @@ jobs:
   deploy-pages:
     needs: build-docs
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/doxy' || github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4

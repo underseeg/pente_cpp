@@ -10,10 +10,7 @@
       <tab type="modulelist" visible="yes" title="" intro=""/>
       <tab type="modulemembers" visible="yes" title="" intro=""/>
     </tab>
-    <tab type="namespaces" visible="yes" title="">
-      <tab type="namespacelist" visible="yes" title="" intro=""/>
-      <tab type="namespacemembers" visible="yes" title="" intro=""/>
-    </tab>
+    <tab type="namespacelist" visible="yes" title="Namespaces" intro=""/>
     <tab type="concepts" visible="no" title="">
     </tab>
     <tab type="interfaces" visible="yes" title="">
@@ -21,12 +18,7 @@
       <tab type="interfaceindex" visible="$ALPHABETICAL_INDEX" title=""/>
       <tab type="interfacehierarchy" visible="yes" title="" intro=""/>
     </tab>
-    <tab type="classes" visible="yes" title="">
-      <tab type="classlist" visible="yes" title="" intro=""/>
-      <tab type="classindex" visible="$ALPHABETICAL_INDEX" title=""/>
-      <tab type="hierarchy" visible="yes" title="" intro=""/>
-      <tab type="classmembers" visible="yes" title="" intro=""/>
-    </tab>
+    <tab type="classlist" visible="yes" title="Classes" intro=""/>
     <tab type="structs" visible="yes" title="">
       <tab type="structlist" visible="yes" title="" intro=""/>
       <tab type="structindex" visible="$ALPHABETICAL_INDEX" title=""/>

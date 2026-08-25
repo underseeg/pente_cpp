@@ -6,7 +6,6 @@ This is a Modern C++ implementation of the game Pente. It supports two players v
 
 ## Navigation
 
-The primary documented files are:
+Documentation is primarily in the
 
-* [penteboard.h](@ref penteboard.h)
-* [penteboard.cpp](@ref penteboard.cpp)
+* [pente namespace](@ref cj::pente)

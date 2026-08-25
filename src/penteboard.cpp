@@ -135,6 +135,7 @@ namespace cj::pente
     {
         return position.x < GridSize && position.y < GridSize;
     }
+
     bool is_in_bounds(signed_coord position)
     {
         return position.x >= 0 && position.y >= 0

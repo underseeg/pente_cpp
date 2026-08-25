@@ -20,9 +20,8 @@ FULL_PATH_NAMES         = NO
 # Behaviour
 QUIET                  = YES
 WARNINGS               = YES
-EXTRACT_ALL            = YES
-EXTRACT_PRIVATE        = NO
-EXTRACT_STATIC         = NO
+WARN_AS_ERROR          = FAIL_ON_WARNINGS_PRINT
+EXTRACT_ALL            = NO
 # Cross-references
 GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = YES

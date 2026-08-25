@@ -59,7 +59,7 @@ jobs:
           DOXY_VERSION=1.18.0
           RELEASE_TAG=Release_${DOXY_VERSION//./_}
           URL="https://github.com/doxygen/doxygen/releases/download/${RELEASE_TAG}/doxygen-${DOXY_VERSION}.linux.bin.tar.gz"
-          wget -O /tmp/doxygen.tar.gz "$URL"
+          wget -qO /tmp/doxygen.tar.gz "$URL"
           sudo mkdir -p /opt/doxygen
           sudo tar -C /opt/doxygen --strip-components=1 -xzf /tmp/doxygen.tar.gz
           sudo ln -sf /opt/doxygen/bin/doxygen /usr/local/bin/doxygen

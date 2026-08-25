@@ -24,9 +24,8 @@ jobs:
       - name: Install dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
           sudo apt-get update
-          sudo apt-get install -y g++-16 cppcheck
+          sudo apt-get install -y g++-14 cppcheck
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
@@ -36,7 +35,7 @@ jobs:
 
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-16 -DENABLE_DOXYGEN=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_DOXYGEN=OFF
 
       - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
@@ -51,7 +50,6 @@ jobs:
   build-docs:
     name: Build Docs (Doxygen)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     steps:
       - uses: actions/checkout@v7
 

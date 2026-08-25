@@ -96,7 +96,7 @@ if(ENABLE_DOXYGEN)
 
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
-    add_custom_target(doxygen ALL
+    add_custom_target(doxygen
         COMMAND $<TARGET_FILE:Doxygen::doxygen> ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"

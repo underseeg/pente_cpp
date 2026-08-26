@@ -63,23 +63,21 @@ if(ENABLE_COVERAGE)
 
     find_program(GCOVR_BIN NAMES gcovr REQUIRED)
 
-    add_library(coverage_flags INTERFACE)
-    target_compile_options(coverage_flags INTERFACE -O0 -g --coverage)
-    target_link_options(coverage_flags INTERFACE --coverage)
+    # Allow overriding the gcov executable name from CI command line
+    set(GCOV_EXECUTABLE "gcov" CACHE STRING "gcov executable name (set via CI)")
 
     # Apply coverage only to the library that contains penteboard sources
-    target_link_libraries(pente_board PRIVATE coverage_flags)
+    target_compile_options(pente_board PRIVATE -O0 -g --coverage)
 
-    # Ensure test executable is linked with coverage so coverage data is emitted
-    # when tests run. Do not add compilation instrumentation to tests themselves.
-    target_link_libraries(penteboard_tests PRIVATE coverage_flags)
+    # Ensure test executable is linked with coverage
+    target_link_options(penteboard_tests PRIVATE --coverage)
 
-    # runs ctest and then gcovr to generate a coverage report in HTML format
+    # Runs ctest and then gcovr to generate a coverage report in HTML format
     add_custom_target(coverage ALL
         DEPENDS penteboard_tests
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-        COMMAND ${CMAKE_COMMAND} -E make_directory coverage_html
-        COMMAND ${GCOVR_BIN} -r ${CMAKE_SOURCE_DIR} --exclude ".*tests.*" --html --html-details -o coverage_html/index.html
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage_html
+        COMMAND ${GCOVR_BIN} --gcov-executable ${GCOV_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --exclude ".*tests.*" --html --html-details -o ${CMAKE_BINARY_DIR}/coverage_html/index.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Running tests and generating coverage report (coverage_html/index.html)"
         VERBATIM

@@ -1,8 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [ coverage-build, main ]
+  push: {}
   pull_request: {}
 
 permissions:
@@ -55,16 +54,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-14 gcovr
+          sudo apt-get install -y g++-14 gcc-14
+          python3 -m pip install gcovr==8.6
 
       - name: Configure CMake with coverage
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON
-
-      - name: Build
-        run: cmake --build build -j 8
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DGCOV_EXECUTABLE=gcov-14 -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON
 
       - name: Run tests and generate coverage report
-        run: cmake --build build --target coverage
+        run: cmake --build build --target coverage -j 8
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v7
@@ -105,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: docs-html
-          path: build/pages/docs
+          path: build/docs/html
 
   deploy-pages:
     name: Deploy Pages
@@ -119,7 +116,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    if: github.ref == 'refs/heads/coverage-build' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Download docs artifact
         uses: actions/download-artifact@v8

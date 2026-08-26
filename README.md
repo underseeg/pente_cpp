@@ -1,6 +1,6 @@
 # Pente CPP
 
-[![Build Status](https://github.com/underseeg/pente_cpp/actions/workflows/build.yml/badge.svg)](https://github.com/underseeg/pente_cpp/actions/workflows/build.yml)
+[![CI Build Status](https://github.com/underseeg/pente_cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/underseeg/pente_cpp/actions/workflows/ci.yml)
 
 This is a C++23 implementation of the game Pente. It supports two players via a command line interface.
 
@@ -18,3 +18,5 @@ For the sake of practicing good practice, there is a CI build. It does the follo
   * Builds Doxygen documentation
 * On push to main
   * Publishes Doxygen documentation to GitHub Pages
+
+Documentation (again, just for demonstrating good practice): https://underseeg.github.io/pente_cpp/

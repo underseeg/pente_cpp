@@ -1,7 +1,8 @@
 name: CI
 
 on:
-  push: {}
+  push:
+    branches: [ coverage-build, main ]
   pull_request: {}
 
 permissions:
@@ -118,7 +119,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/coverage-build' || github.ref == 'refs/heads/main'
     steps:
       - name: Download docs artifact
         uses: actions/download-artifact@v8

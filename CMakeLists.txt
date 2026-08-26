@@ -54,9 +54,41 @@ target_link_libraries(penteboard_tests PRIVATE pente_board)
 
 add_test(NAME penteboard_tests COMMAND penteboard_tests)
 
+##### coverage support
+
+option(ENABLE_COVERAGE "Enable coverage reporting (requires gcovr)" OFF)
+
+if(ENABLE_COVERAGE)
+    message(STATUS "Coverage enabled: adding coverage compile/link flags (scoped to pente_board and tests)")
+
+    find_program(GCOVR_BIN NAMES gcovr REQUIRED)
+
+    add_library(coverage_flags INTERFACE)
+    target_compile_options(coverage_flags INTERFACE -O0 -g --coverage)
+    target_link_options(coverage_flags INTERFACE --coverage)
+
+    # Apply coverage only to the library that contains penteboard sources
+    target_link_libraries(pente_board PRIVATE coverage_flags)
+
+    # Ensure test executable is linked with coverage so coverage data is emitted
+    # when tests run. Do not add compilation instrumentation to tests themselves.
+    target_link_libraries(penteboard_tests PRIVATE coverage_flags)
+
+    # runs ctest and then gcovr to generate a coverage report in HTML format
+    add_custom_target(coverage ALL
+        DEPENDS penteboard_tests
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        COMMAND ${CMAKE_COMMAND} -E make_directory coverage_html
+        COMMAND ${GCOVR_BIN} -r ${CMAKE_SOURCE_DIR} --exclude ".*tests.*" --html --html-details -o coverage_html/index.html
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Running tests and generating coverage report (coverage_html/index.html)"
+        VERBATIM
+    )
+endif()
+
 ##### cppcheck target
 
-option(ENABLE_CPPCHECK "Run static analysis" ON)
+option(ENABLE_CPPCHECK "Run static analysis" OFF)
 
 if(ENABLE_CPPCHECK)
     find_program(CPPCHECK_EXE NAMES cppcheck REQUIRED)
@@ -86,7 +118,7 @@ endif()
 
 ##### doxygen target
 
-option(ENABLE_DOXYGEN "Generate Doxygen API docs" ON)
+option(ENABLE_DOXYGEN "Generate Doxygen API docs" OFF)
 
 if(ENABLE_DOXYGEN)
     find_package(Doxygen REQUIRED COMPONENTS dot)

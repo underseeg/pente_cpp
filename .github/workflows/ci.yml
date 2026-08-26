@@ -33,17 +33,43 @@ jobs:
 
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_DOXYGEN=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_CPPCHECK=ON
 
       - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DENABLE_DOXYGEN=OFF
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build
         run: cmake --build build -j 8
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure -C Debug
+
+  test-coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-14 gcovr
+
+      - name: Configure CMake with coverage
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON
+
+      - name: Build
+        run: cmake --build build -j 8
+
+      - name: Run tests and generate coverage report
+        run: cmake --build build --target coverage
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: build/coverage_html
 
   build-docs:
     name: Build Docs (Doxygen)
@@ -69,19 +95,20 @@ jobs:
           sudo apt-get install -y graphviz
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_CPPCHECK=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_DOXYGEN=ON
 
       - name: Build Doxygen target
         run: cmake --build build --target doxygen -j 8
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+      - name: Upload docs HTML
+        uses: actions/upload-artifact@v7
         with:
-          path: build/docs/html
+          name: docs-html
+          path: build/pages/docs
 
   deploy-pages:
     name: Deploy Pages
-    needs: [build, build-docs]
+    needs: [build, build-docs, test-coverage]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,6 +120,44 @@ jobs:
 
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Download docs artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: docs-html
+          path: docs-html
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-html
+          path: coverage-html
+
+      - name: Assemble Pages site
+        run: |
+          set -e
+          rm -rf site
+          mkdir -p site/docs site/coverage
+          if [ -d docs-html ]; then cp -r docs-html/* site/docs/; fi
+          if [ -d coverage-html ]; then cp -r coverage-html/* site/coverage/; fi
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html>
+          <head><meta charset="utf-8"><title>Project Pages</title></head>
+          <body>
+          <h1>Project Pages</h1>
+          <ul>
+            <li><a href="docs/index.html">Documentation (Doxygen)</a></li>
+            <li><a href="coverage/index.html">Coverage Report</a></li>
+          </ul>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

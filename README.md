@@ -14,9 +14,10 @@ For the sake of practicing good practice, there is a CI build. It does the follo
   * Runs the build on Windows and Ubuntu
   * Enables common warnings and treats them as errors
   * Runs static analysis using cppcheck
-  * Runs unit tests on the board and game logic
+  * Runs unit tests (with coverage data) on the board and game logic
   * Builds Doxygen documentation
 * On push to main
   * Publishes Doxygen documentation to GitHub Pages
+  * Publishes a coverage report to GitHub Pages
 
-Documentation (again, just for demonstrating good practice): https://underseeg.github.io/pente_cpp/
+Documentation & coverage data (again, just for demonstrating good practice): <https://underseeg.github.io/pente_cpp/>

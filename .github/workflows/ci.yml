@@ -30,7 +30,7 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git vcpkg
           ./vcpkg/bootstrap-vcpkg.sh
-          ./vcpkg/vcpkg install gtest --triplet x64-linux
+          ./vcpkg/vcpkg install --triplet x64-linux
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
@@ -43,7 +43,7 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git vcpkg
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg.exe install gtest:x64-windows
+          .\vcpkg\vcpkg.exe install --triplet x64-windows
 
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'

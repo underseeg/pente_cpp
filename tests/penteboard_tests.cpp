@@ -159,6 +159,16 @@ TEST(penteboard, apply_captures_no_capture)
     EXPECT_EQ((b[2, 0]), space::White);
 }
 
+// Applying captures out of bounds should not capture any pieces.
+TEST(penteboard, apply_captures_out_of_bounds)
+{
+    board b{};
+
+    const auto captured = apply_pair_captures(b, {20, 20});
+
+    EXPECT_EQ(captured, 0u);
+}
+
 // Adding captured pieces should accumulate correctly without reaching the win threshold.
 TEST(penteboard, add_captured_pieces_accumulates_for_black_without_win)
 {

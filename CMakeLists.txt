@@ -72,8 +72,10 @@ if(ENABLE_COVERAGE)
     # Allow overriding the gcov executable name from CI command line
     set(GCOV_EXECUTABLE "gcov" CACHE STRING "gcov executable name (set via CI)")
 
-    # Apply coverage only to the library that contains penteboard sources
+    # Apply coverage to the library. Also to tests else not all coverage is collected.
+    # We exclude the test files when generating the report.
     target_compile_options(pente_board PRIVATE -O0 -g --coverage)
+    target_compile_options(penteboard_tests PRIVATE -O0 -g --coverage)
 
     # Ensure test executable is linked with coverage
     target_link_options(penteboard_tests PRIVATE --coverage)
@@ -83,7 +85,7 @@ if(ENABLE_COVERAGE)
         DEPENDS penteboard_tests
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage_html
-        COMMAND ${GCOVR_BIN} --gcov-executable ${GCOV_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --exclude ".*tests.*" --html --html-details -o ${CMAKE_BINARY_DIR}/coverage_html/index.html
+        COMMAND ${GCOVR_BIN} --gcov-executable ${GCOV_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --exclude-throw-branches --exclude-unreachable-branches --exclude ".*tests.*" --exclude ".*gtest.*" --html --html-details -o ${CMAKE_BINARY_DIR}/coverage_html/index.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Running tests and generating coverage report (coverage_html/index.html)"
         VERBATIM

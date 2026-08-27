@@ -120,7 +120,8 @@ namespace cj::pente
             const auto playerSpace = board[start];
             const auto opponentSpace = opposite(playerSpace);
 
-            if (line[0] != playerSpace || line[1] != opponentSpace || line[2] != opponentSpace || line[3] != playerSpace)
+            // first location is the player's piece by definition so we only need to check the next three positions
+            if (line[1] != opponentSpace || line[2] != opponentSpace || line[3] != playerSpace)
             {
                 return 0u;
             }

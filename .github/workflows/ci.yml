@@ -43,7 +43,7 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git vcpkg
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg.exe install --triplet x64-windows
+          .\vcpkg\vcpkg.exe install --triplet x64-mingw-static
 
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'

@@ -65,6 +65,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Bootstrap vcpkg (Ubuntu)
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh
+          ./vcpkg/vcpkg install --triplet x64-linux
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -72,7 +78,7 @@ jobs:
           python3 -m pip install gcovr==8.6
 
       - name: Configure CMake with coverage
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DGCOV_EXECUTABLE=gcov-14 -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DGCOV_EXECUTABLE=gcov-14 -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
 
       - name: Run tests and generate coverage report
         run: cmake --build build --target coverage -j 8
@@ -107,7 +113,7 @@ jobs:
           sudo apt-get install -y graphviz
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_DOXYGEN=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DENABLE_DOXYGEN=ON
 
       - name: Build Doxygen target
         run: cmake --build build --target doxygen -j 8

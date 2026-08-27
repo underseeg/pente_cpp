@@ -44,22 +44,25 @@ target_link_libraries(pente_app PRIVATE pente_board)
 
 ##### pente tests
 
-enable_testing()
+option(ENABLE_TESTS "Enable unit tests" ON)
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
 
-find_package(GTest CONFIG REQUIRED)
+if(ENABLE_TESTS OR ENABLE_COVERAGE)
+    enable_testing()
 
-add_executable(penteboard_tests
-    tests/penteboard_tests.cpp
-)
+    find_package(GTest CONFIG REQUIRED)
 
-target_link_libraries(penteboard_tests PRIVATE pente_board GTest::gtest_main)
+    add_executable(penteboard_tests
+        tests/penteboard_tests.cpp
+    )
 
-include(GoogleTest)
-gtest_discover_tests(penteboard_tests)
+    target_link_libraries(penteboard_tests PRIVATE pente_board GTest::gtest_main)
+
+    include(GoogleTest)
+    gtest_discover_tests(penteboard_tests)
+endif()
 
 ##### coverage support
-
-option(ENABLE_COVERAGE "Enable coverage reporting (requires gcovr)" OFF)
 
 if(ENABLE_COVERAGE)
     message(STATUS "Coverage enabled: adding coverage compile/link flags (scoped to pente_board and tests)")

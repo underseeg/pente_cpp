@@ -46,13 +46,16 @@ target_link_libraries(pente_app PRIVATE pente_board)
 
 enable_testing()
 
+find_package(GTest CONFIG REQUIRED)
+
 add_executable(penteboard_tests
     tests/penteboard_tests.cpp
 )
 
-target_link_libraries(penteboard_tests PRIVATE pente_board)
+target_link_libraries(penteboard_tests PRIVATE pente_board GTest::gtest_main)
 
-add_test(NAME penteboard_tests COMMAND penteboard_tests)
+include(GoogleTest)
+gtest_discover_tests(penteboard_tests)
 
 ##### coverage support
 

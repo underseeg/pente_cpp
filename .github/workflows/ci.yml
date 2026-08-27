@@ -25,19 +25,33 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-14 cppcheck
 
+      - name: Bootstrap vcpkg (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh
+          ./vcpkg/vcpkg install gtest --triplet x64-linux
+
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           choco install cppcheck --no-progress -y
           'C:\Program Files\Cppcheck' >> $env:GITHUB_PATH
 
+      - name: Bootstrap vcpkg (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git vcpkg
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg.exe install gtest:x64-windows
+
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_CPPCHECK=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_CPPCHECK=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
 
       - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake
 
       - name: Build
         run: cmake --build build -j 8

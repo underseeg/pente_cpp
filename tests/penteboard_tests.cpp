@@ -49,10 +49,12 @@ TEST(penteboard, is_in_bounds)
     EXPECT_TRUE(is_in_bounds(coord{BoardCentre, BoardCentre}));
     EXPECT_TRUE(is_in_bounds(coord{GridSize - 1, GridSize - 1}));
 
-    EXPECT_FALSE(is_in_bounds(signed_coord{-1, 0}));
-    EXPECT_FALSE(is_in_bounds(signed_coord{0, -1}));
     EXPECT_FALSE(is_in_bounds(coord{GridSize, 0}));
     EXPECT_FALSE(is_in_bounds(coord{0, GridSize}));
+    EXPECT_FALSE(is_in_bounds(signed_coord{-1, 0}));
+    EXPECT_FALSE(is_in_bounds(signed_coord{0, -1}));
+    EXPECT_FALSE(is_in_bounds(signed_coord{0, GridSize}));
+    EXPECT_FALSE(is_in_bounds(signed_coord{GridSize, 0}));
 }
 
 // b.rows() should produce the same values as b[x, y] for all valid coordinates.
@@ -148,15 +150,25 @@ TEST(penteboard, apply_captures_no_capture)
 {
     board b{};
 
+    // scenario 1
     b[0, 0] = space::Black;
     b[1, 0] = space::White;
-    b[2, 0] = space::White;
 
     const auto captured = apply_pair_captures(b, {0, 0});
 
     EXPECT_EQ(captured, 0u);
     EXPECT_EQ((b[1, 0]), space::White);
-    EXPECT_EQ((b[2, 0]), space::White);
+
+    // scenario 2
+    b[0, 2] = space::Black;
+    b[1, 2] = space::White;
+    b[2, 2] = space::White;
+
+    const auto captured2 = apply_pair_captures(b, {0, 2});
+    
+    EXPECT_EQ(captured2, 0u);
+    EXPECT_EQ((b[1, 2]), space::White);
+    EXPECT_EQ((b[2, 2]), space::White);
 }
 
 // Applying captures out of bounds should not capture any pieces.

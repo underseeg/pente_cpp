@@ -47,17 +47,21 @@ jobs:
 
       - name: Configure (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_CPPCHECK=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        run: cmake --preset app-build -DCMAKE_CXX_COMPILER=g++-14
 
       - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-mingw-static
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}\\vcpkg
+        run: cmake --preset app-build -G Ninja -DVCPKG_TARGET_TRIPLET=x64-mingw-static
 
       - name: Build
-        run: cmake --build build -j 8
+        run: cmake --build --preset app-build
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure -C Debug
+        run: ctest --test-dir build/app-build --output-on-failure -C Debug
 
   test-coverage:
     name: Test Coverage
@@ -78,10 +82,12 @@ jobs:
           python3 -m pip install gcovr==8.6
 
       - name: Configure CMake with coverage
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DGCOV_EXECUTABLE=gcov-14 -DCMAKE_CXX_COMPILER=g++-14 -DENABLE_COVERAGE=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        run: cmake --preset test-coverage -DGCOV_EXECUTABLE=gcov-14 -DCMAKE_CXX_COMPILER=g++-14
 
       - name: Run tests and generate coverage report
-        run: cmake --build build --target coverage -j 8
+        run: cmake --build --preset test-coverage
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v7
@@ -113,10 +119,10 @@ jobs:
           sudo apt-get install -y graphviz
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=OFF -DENABLE_DOXYGEN=ON
+        run: cmake --preset doxygen-build
 
       - name: Build Doxygen target
-        run: cmake --build build --target doxygen -j 8
+        run: cmake --build --preset doxygen-build
 
       - name: Upload docs HTML
         uses: actions/upload-artifact@v7

@@ -10,11 +10,9 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "args": [],
             "command": [
                 "cls;",
-                "cd ${workspaceFolder}/build;",
-                "cmake --build . --config Debug --target all -j 16 --"
+                "cmake --build --preset app-build-local"
             ],
             "problemMatcher": []
         }

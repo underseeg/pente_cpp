@@ -33,7 +33,7 @@
             "name": "doxygen-build",
             "displayName": "Doxygen Only",
             "description": "Configure with Doxygen enabled",
-            "binaryDir": "${sourceDir}/build/doxygen-only",
+            "binaryDir": "${sourceDir}/build/doxygen-build",
             "cacheVariables": {
                 "ENABLE_TESTS": "OFF",
                 "ENABLE_DOXYGEN": "ON",

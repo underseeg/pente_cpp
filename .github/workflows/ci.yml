@@ -93,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: coverage-html
-          path: build/coverage_html
+          path: build/test-coverage/coverage_html
 
   build-docs:
     name: Build Docs (Doxygen)
@@ -128,7 +128,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: docs-html
-          path: build/docs/html
+          path: build/doxygen-build/docs/html
 
   deploy-pages:
     name: Deploy Pages

@@ -158,11 +158,9 @@ jobs:
 
       - name: Assemble Pages site
         run: |
-          set -e
-          rm -rf site
           mkdir -p site/docs site/coverage
-          if [ -d docs-html ]; then cp -r docs-html/* site/docs/; fi
-          if [ -d coverage-html ]; then cp -r coverage-html/* site/coverage/; fi
+          cp -r docs-html/* site/docs/
+          cp -r coverage-html/* site/coverage/
           cat > site/index.html <<'HTML'
           <!doctype html>
           <html>

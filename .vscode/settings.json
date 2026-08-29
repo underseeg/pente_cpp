@@ -1,5 +1,11 @@
 {
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
-  "cmake.useCMakePresets": "always"
+  "cmake.useCMakePresets": "always",
+  "cmake.configureEnvironment": {
+    "CMAKE_GENERATOR": "MinGW Makefiles"
+  },
+  "cmake.configureArgs": [
+    "-DVCPKG_TARGET_TRIPLET=x64-mingw-static"
+  ],
 }

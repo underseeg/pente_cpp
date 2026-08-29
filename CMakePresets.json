@@ -1,0 +1,66 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "app-build",
+            "displayName": "App build & test",
+            "description": "Configure with cppcheck & tests enabled, coverage disabled",
+            "binaryDir": "${sourceDir}/build/app-build",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "ENABLE_CPPCHECK": "ON",
+                "ENABLE_TESTS": "ON",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "test-coverage",
+            "displayName": "Tests & coverage",
+            "description": "Configure with tests & coverage enabled",
+            "binaryDir": "${sourceDir}/build/test-coverage",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "ENABLE_COVERAGE": "ON",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "doxygen-build",
+            "displayName": "Doxygen Only",
+            "description": "Configure with Doxygen enabled",
+            "binaryDir": "${sourceDir}/build/doxygen-build",
+            "cacheVariables": {
+                "ENABLE_TESTS": "OFF",
+                "ENABLE_DOXYGEN": "ON",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "app-build",
+            "configurePreset": "app-build",
+            "configuration": "Debug",
+            "jobs": 8
+        },
+        {
+            "name": "test-coverage",
+            "configurePreset": "test-coverage",
+            "configuration": "Debug",
+            "targets": "coverage",
+            "jobs": 8
+        },
+        {
+            "name": "doxygen-build",
+            "configurePreset": "doxygen-build",
+            "configuration": "Release",
+            "targets": "doxygen",
+            "jobs": 8
+        }
+    ]
+}

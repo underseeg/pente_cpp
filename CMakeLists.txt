@@ -81,11 +81,21 @@ if(ENABLE_COVERAGE)
     target_link_options(penteboard_tests PRIVATE --coverage)
 
     # Runs ctest and then gcovr to generate a coverage report in HTML format
-    add_custom_target(coverage ALL
+    add_custom_target(coverage
         DEPENDS penteboard_tests
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage_html
-        COMMAND ${GCOVR_BIN} --gcov-executable ${GCOV_EXECUTABLE} -r ${CMAKE_SOURCE_DIR} --exclude-throw-branches --exclude-unreachable-branches --exclude ".*tests.*" --exclude ".*gtest.*" --html --html-details -o ${CMAKE_BINARY_DIR}/coverage_html/index.html
+        COMMAND
+            ${GCOVR_BIN}
+            --gcov-executable ${GCOV_EXECUTABLE}
+            -r ${CMAKE_SOURCE_DIR}
+            --exclude-throw-branches
+            --exclude-unreachable-branches
+            --exclude ".*tests.*"
+            --exclude ".*gtest.*"
+            --html
+            --html-details
+            -o ${CMAKE_BINARY_DIR}/coverage_html/index.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Running tests and generating coverage report (coverage_html/index.html)"
         VERBATIM

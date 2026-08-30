@@ -10,7 +10,7 @@
             "name": "app-build",
             "displayName": "App build & test",
             "description": "Configure with cppcheck & tests enabled, coverage disabled",
-            "binaryDir": "${sourceDir}/build/app-build",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "ENABLE_CPPCHECK": "ON",
@@ -22,7 +22,7 @@
             "name": "test-coverage",
             "displayName": "Tests & coverage",
             "description": "Configure with tests & coverage enabled",
-            "binaryDir": "${sourceDir}/build/test-coverage",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "ENABLE_COVERAGE": "ON",
@@ -33,7 +33,7 @@
             "name": "doxygen-build",
             "displayName": "Doxygen Only",
             "description": "Configure with Doxygen enabled",
-            "binaryDir": "${sourceDir}/build/doxygen-build",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "ENABLE_TESTS": "OFF",
                 "ENABLE_DOXYGEN": "ON",

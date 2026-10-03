@@ -217,8 +217,6 @@ TEST(game, wins_by_five_in_a_row_and_rejects_later_moves)
     const auto winningMove = game.play({4, 0});
     const auto rejected = game.play({5, 0});
 
-    // TODO chaining expected/optionals support?
-
     // Assert
     ASSERT_TRUE(winningMove.has_value());
     ASSERT_TRUE(winningMove->outcome.has_value());

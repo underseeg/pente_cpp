@@ -203,13 +203,6 @@ TEST(game, does_not_capture_without_a_bracket)
     EXPECT_EQ((unbracketedPairGame.state().board[1, 0]), space::Black);
     EXPECT_EQ((unbracketedPairGame.state().board[2, 0]), space::Black);
     EXPECT_EQ(unbracketedPairGame.state().captures.pieces_captured_by_white, 0u);
-
-//    game edgeGame{make_game_state(piece::White, {})};
-//    const auto edgeMove = edgeGame.play({GridSize - 1, 5});
-//
-//    ASSERT_TRUE(edgeMove.has_value());
-//    EXPECT_EQ(edgeMove->pairs_captured, 0u);
-//    EXPECT_EQ(edgeGame.state().captures.pieces_captured_by_white, 0u);
 }
 
 // A line win ends the game and prevents subsequent moves.

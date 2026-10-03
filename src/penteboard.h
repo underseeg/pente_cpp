@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <span>
 #include <ranges>
 #include <utility>
@@ -52,9 +53,9 @@ namespace cj::pente
     };
 
     constexpr coord::operator signed_coord() const
-    {
-        return signed_coord {static_cast<std::ptrdiff_t>(x), static_cast<std::ptrdiff_t>(y)};
-    }
+        {
+            return signed_coord {static_cast<std::ptrdiff_t>(x), static_cast<std::ptrdiff_t>(y)};
+        }
 
     constexpr signed_coord::operator coord() const
     {
@@ -98,13 +99,6 @@ namespace cj::pente
         std::array<space, GridSize * GridSize> data{};
     };
 
-    /// @brief Represents the capture pots for both players, tracking the number of pieces captured by each player.
-    struct capture_pots
-    {
-        unsigned int pieces_captured_by_black {0}; ///< The number of pieces captured by the black player.
-        unsigned int pieces_captured_by_white {0}; ///< The number of pieces captured by the white player.
-    };
-
     /// @brief Returns the opposite player piece.
     /// @param piece The player piece.
     /// @return The opposite player piece.
@@ -130,26 +124,4 @@ namespace cj::pente
     /// @param position The coordinates to check.
     /// @return True if the coordinates are within bounds, false otherwise.
     bool is_in_bounds(signed_coord position);
-    
-    /// @brief Applies pair captures on the board based on the last move made at the given position.
-    /// Behaviour is undefined if the space at the given position is Empty.
-    /// @param board The board on which to apply pair captures.
-    /// @param playedPosition The coordinates of the last move.
-    /// @return The number of pieces captured as a result of the last move.
-    unsigned int apply_pair_captures(board& board, coord playedPosition);
-
-    /// @brief Adds captured pieces to the player's capture pot and checks for a win by captures.
-    /// @param pots The capture pots to update.
-    /// @param player The player who captured the pieces.
-    /// @param piecesToAdd The number of pieces to add to the player's capture pot.
-    /// @return A pair containing the total captured pieces and a boolean indicating if the player has won by captures.
-    ///
-    /// The win condition is true when `(total captured pieces / 2) >= 5`.
-    std::pair<unsigned int, bool> add_captured_pieces(capture_pots& pots, piece player, unsigned int piecesToAdd);
-
-    /// @brief Checks if the last move made at the given position results in five contiguous pieces of the same color in a row.
-    /// @param board The board to check.
-    /// @param playedPosition The coordinates of the last move.
-    /// @return True if the last move results in five contiguous pieces of the same color, false otherwise.
-    bool check_five_in_a_row(const board& board, coord playedPosition);
 }

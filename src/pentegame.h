@@ -1,0 +1,114 @@
+#pragma once
+
+#include "penteboard.h"
+
+#include <expected>
+#include <optional>
+
+namespace cj::pente
+{
+    /// @brief The captured-piece totals for both players.
+    struct capture_pots
+    {
+        unsigned int pieces_captured_by_black {0}; ///< Pieces captured by the black player.
+        unsigned int pieces_captured_by_white {0}; ///< Pieces captured by the white player.
+    };
+
+    // TODO at this point should it just be a member method?
+
+    /// @brief Returns a player's captured-piece total while preserving the pot's constness.
+    template <typename Captures>
+    constexpr auto& captured_pieces_for(Captures& captures, piece player)
+    {
+        return player == piece::Black
+            ? captures.pieces_captured_by_black
+            : captures.pieces_captured_by_white;
+    }
+
+    /// @brief The win conditions completed by the final move.
+    /// The bit values allow a move to satisfy both win conditions without allocating.
+    enum class win_reason : unsigned char
+    {
+        none = 0,
+        captures = 1,
+        five_in_a_row = 2
+    };
+
+    /// @brief Combines win conditions without dynamic allocation.
+    constexpr win_reason operator|(win_reason left, win_reason right)
+    {
+        return static_cast<win_reason>(
+            static_cast<unsigned char>(left) | static_cast<unsigned char>(right));
+    }
+
+    /// @brief Checks whether a win condition is present.
+    constexpr bool has_reason(win_reason reasons, win_reason reason)
+    {
+        return (static_cast<unsigned char>(reasons) & static_cast<unsigned char>(reason)) != 0;
+    }
+
+    /// @brief The winner and all win conditions completed by the final move.
+    ///
+    /// A missing winner represents a draw; draws have no win reasons.
+    struct game_outcome
+    {
+        std::optional<piece> winner;
+        win_reason reasons{win_reason::none};
+    };
+
+    /// @brief The observable state of a Pente game.
+    struct game_state
+    {
+        board board; ///< Current board.
+        capture_pots captures; ///< Captured-piece totals.
+        piece current_player{piece::Black}; ///< Player whose turn it is, or the winner after a win.
+        std::optional<game_outcome> outcome; ///< Empty until the game ends.
+    };
+
+    /// @brief The result of a successful move.
+    struct move_report
+    {
+        unsigned int pairs_captured{0}; ///< Pairs captured by this move.
+        std::optional<game_outcome> outcome; ///< Set when this move ends the game.
+    };
+
+    /// @brief Why a move was rejected.
+    enum class move_error
+    {
+        out_of_bounds,
+        occupied,
+        game_finished
+    };
+
+    /// @brief Owns a Pente game's current board, capture totals, turn, and outcome.
+    ///
+    /// Construction with a starting colour places it at the board centre and makes
+    /// the opposite colour the first player to move. Construction with a game_state
+    /// adopts that state as-is. Invalid moves leave the state unchanged. A winning
+    /// player keeps the final turn; a non-winning move advances to the other player.
+    class game
+    {
+    public:
+        /// @brief Starts a game with the chosen colour at the centre.
+        /// The opposite colour is first to make a move.
+        explicit game(piece startingColour);
+
+        /// @brief Starts from the supplied state without applying opening-game setup.
+        explicit game(const game_state& initialState);
+
+        /// @brief Applies a legal move and updates captures, outcome, and turn.
+        /// @return The move report, or the reason the move was rejected.
+        std::expected<move_report, move_error> play(coord position);
+
+        /// @brief Returns a read-only reference to the game's current state.
+        ///
+        /// The reference remains valid for the lifetime of this game. Its values
+        /// reflect later calls to play(), so callers should copy it if they need
+        /// to retain an earlier state.
+        const game_state& state() const noexcept;
+
+    private:
+        // The game is the only mutable owner; callers observe this state by const reference.
+        game_state current_state{};
+    };
+}

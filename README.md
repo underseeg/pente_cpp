@@ -4,7 +4,7 @@
 
 This is a C++23 implementation of the game Pente. It supports two players via a command line interface.
 
-This codebase is an exercise in writing Modern C++ and designing around algorithms rather than raw loops. The code in main is not intended to be clean, the subject of this exercise is the board and game logic in penteboard.h/cpp.
+This codebase is an exercise in writing Modern C++ and designing around algorithms rather than raw loops. The board and game rules live in `penteboard.h/cpp` and `pentegame.h/cpp`; the command-line program handles move entry and display. The code in main is not intended to be clean.
 
 Readability & maintainability is favoured over pre-mature optimisation. This is a command line HCI after all; performance is not an issue.
 

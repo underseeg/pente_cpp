@@ -1,234 +1,159 @@
-#include "penteboard.h"
+#include "pentegame.h"
+#include "move_parser.h"
 
-#include <expected>
 #include <string>
 #include <random>
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 using namespace cj::pente;
 
-template <typename RandomEngine>
-piece pick_start_colour(RandomEngine& engine)
+namespace
 {
-    std::uniform_int_distribution<int> dist{0, 1};
-    return dist(engine) == 0 ? piece::Black : piece::White;
-}
-
-char to_char(space space)
-{
-    switch (space)
+    template <typename RandomEngine>
+    piece pick_start_colour(RandomEngine& engine)
     {
-        case space::Empty: return '.';
-        case space::Black: return 'B';
-        case space::White: return 'W';
+        uniform_int_distribution<int> distribution{0, 1};
+        return distribution(engine) == 0 ? piece::Black : piece::White;
     }
-    
-    throw logic_error{"Invalid space value"};
-}
 
-const char* to_string(piece piece)
-{
-    switch (piece)
+    char to_char(space value)
     {
-        case piece::Black: return "Black";
-        case piece::White: return "White";
-    }
-    
-    throw logic_error{"Invalid piece value"};
-}
-
-void print_board(const board& board)
-{
-    for (auto row_view : board.rows())
-    {
-        for (auto space : row_view)
+        switch (value)
         {
-            cout << to_char(space) << ' ';
+            case space::Empty: return '.';
+            case space::Black: return 'B';
+            case space::White: return 'W';
         }
-        cout << endl;
+    
+        throw logic_error{"Invalid space value"};
     }
-}
 
-namespace cj::pente::move_parser
-{
-    enum class MoveParseError
+    const char* to_string(piece value)
     {
-        InvalidFormat,
-        OutOfBounds
-    };
-
-    // parses up down left right and distance from centre - "R3U2" is 3 spaces to the right and 2 spaces up from the
-    // centre of the board. "O" is centre of the board
-    // invalid parse results are returned as an unexpected value with a MoveParseError enum
-    std::expected<coord, MoveParseError> parse_move_from_string(const std::string& input)
-    {
-        if (input.size() == 1 && toupper(static_cast<unsigned char>(input[0])) == 'O')
+        switch (value)
         {
-            return coord{BoardCentre, BoardCentre};
+            case piece::Black: return "Black";
+            case piece::White: return "White";
+        }
+    
+        throw logic_error{"Invalid piece value"};
+    }
+
+    void print_board(const board& gameBoard)
+    {
+        for (const auto row : gameBoard.rows())
+        {
+            for (const auto value : row)
+            {
+                cout << to_char(value) << ' ';
+            }
+            cout << endl;
+        }
+    }
+
+    coord next_move_from_input()
+    {
+        while (true)
+        {
+            cout << "Enter move from centre (e.g. R3U2 or O): ";
+
+            string input;
+            if (!(cin >> input))
+            {
+                throw runtime_error{"Failed to read move input"};
+            }
+
+            cout << endl;
+
+            const auto parseResult = move_parser::parse_move_from_string(input);
+
+            if (parseResult)
+            {
+                return *parseResult;
+            }
+
+            if (parseResult.error() == move_parser::move_parse_error::out_of_bounds)
+            {
+                cout << "Move is outside the board. Try again." << endl;
+                continue;
+            }
+
+            cout << "Invalid move format. Use directions and distances like R3U2, or O for centre." << endl;
+        }
+    }
+
+    void print_outcome(const game_outcome& outcome, const game_state& state)
+    {
+        if (!outcome.winner)
+        {
+            cout << "The game ends in a draw." << endl;
+            return;
         }
 
-        auto x = BoardCentre;
-        auto y = BoardCentre;
-
-        bool seenHorizontalDirection = false;
-        bool seenVerticalDirection = false;
-        bool hasComponent = false;
-
-        std::ptrdiff_t i = 0;
-        while (i < std::ssize(input))
+        const auto winner = to_string(*outcome.winner);
+        if (has_reason(outcome.reasons, win_reason::captures))
         {
-            const auto direction = static_cast<char>(toupper(static_cast<unsigned char>(input.cbegin()[i])));
-            ++i;
+            const auto capturedPieces = captured_pieces_for(state.captures, *outcome.winner);
+            cout << winner << " wins by capturing at least five pairs! Total captured pieces: "
+                 << capturedPieces << endl;
+        }
+        if (has_reason(outcome.reasons, win_reason::five_in_a_row))
+        {
+            cout << winner << " wins by getting 5 in a row!" << endl;
+        }
+    }
 
-            if (direction != 'U' && direction != 'D' && direction != 'L' && direction != 'R')
-            {
-                return unexpected{MoveParseError::InvalidFormat};
-            }
+    void run_game()
+    {
+        default_random_engine engine{random_device{}()};
+        const auto startingColour = pick_start_colour(engine);
+        game game{startingColour};
+        const auto& state = game.state();
 
-            if (i >= std::ssize(input) || !isdigit(static_cast<unsigned char>(input.cbegin()[i])))
-            {
-                return unexpected{MoveParseError::InvalidFormat};
-            }
+        cout << "Starting colour: " << to_string(startingColour) << endl;
 
-            std::ptrdiff_t distance = 0;
-            while (i < std::ssize(input) && isdigit(static_cast<unsigned char>(input.cbegin()[i])))
-            {
-                distance = (distance * 10) + static_cast<std::ptrdiff_t>(input.cbegin()[i] - '0');
-                ++i;
-            }
+        while (true)
+        {
+            print_board(state.board);
+            cout << "Current turn: " << to_string(state.current_player) << endl;
 
-            if (direction == 'L' || direction == 'R')
+            const auto position = next_move_from_input();
+            const auto result = game.play(position);
+            if (!result)
             {
-                if (seenHorizontalDirection)
+                switch (result.error())
                 {
-                    return unexpected{MoveParseError::InvalidFormat};
+                    case move_error::out_of_bounds:
+                        cout << "Move is outside the board. Try again." << endl;
+                        break;
+                    case move_error::occupied:
+                        cout << "That space is already occupied. Try again." << endl;
+                        break;
+                    case move_error::game_finished:
+                        throw logic_error{"Cannot play a move after the game has finished"};
                 }
-
-                seenHorizontalDirection = true;
-                x += (direction == 'R' ? distance : -distance);
-            }
-            else
-            {
-                if (seenVerticalDirection)
-                {
-                    return unexpected{MoveParseError::InvalidFormat};
-                }
-
-                seenVerticalDirection = true;
-                y += (direction == 'D' ? distance : -distance);
+                continue;
             }
 
-            hasComponent = true;
-        }
-
-        if (!hasComponent)
-        {
-            return unexpected{MoveParseError::InvalidFormat};
-        }
-
-        if (!is_in_bounds(coord{x, y}))
-        {
-            return unexpected{MoveParseError::OutOfBounds};
-        }
-
-        return coord{x, y};
-    }
-}
-
-coord next_move_from_input()
-{
-    while (true)
-    {
-        cout << "Enter move from centre (e.g. R3U2 or O): ";
-
-        string input;
-        if (!(cin >> input))
-        {
-            throw runtime_error{"Failed to read move input"};
-        }
-
-        cout << endl;
-
-        const auto parseResult = move_parser::parse_move_from_string(input);
-
-        if (parseResult.has_value())
-        {
-            return parseResult.value();
-        }
-
-        if (parseResult.error() == move_parser::MoveParseError::OutOfBounds)
-        {
-            cout << "Move is outside the board. Try again." << endl;
-            continue;
-        }
-
-        cout << "Invalid move format. Use directions and distances like R3U2, or O for centre." << endl;
-    }
-}
-
-void run_game()
-{
-    board board{};
-    
-    default_random_engine engine{random_device{}()};
-    auto currentPlayer = pick_start_colour(engine);
-    capture_pots capturePots{};
-
-    cout << "Starting colour: " << to_string(currentPlayer) << endl;
-
-    // place first piece in the centre of the board
-    board[BoardCentre, BoardCentre] = to_space(currentPlayer);
-    currentPlayer = opposite(currentPlayer);
-
-    while (true)
-    {
-        print_board(board);
-        cout << "Current turn: " << to_string(currentPlayer) << endl;
-
-        // accept input for next move
-        coord position = next_move_from_input();
-
-        // retry if the space is already occupied
-        if (board[position] != space::Empty)
-        {
-            cout << "That space is already occupied. Try again." << endl;
-            continue;
-        }
-
-        // place piece on board
-        board[position] = to_space(currentPlayer);
-
-        // check for captures
-        const auto capturedPieces = apply_pair_captures(board, position);
-        const auto [totalCapturedPieces, hasWonByCaptures] = add_captured_pieces(capturePots, currentPlayer, capturedPieces);
-
-        if (capturedPieces > 0)
-        {
-            cout << to_string(currentPlayer) << " captured " << (capturedPieces / 2)
-                 << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
-
-            if (hasWonByCaptures)
+            if (result->pairs_captured > 0)
             {
-                cout << to_string(currentPlayer) << " wins by capturing >=5 pairs! Total captured pieces: " << totalCapturedPieces << endl;
+                const auto movingPlayer = state.current_player;
+                const auto totalCapturedPieces = captured_pieces_for(state.captures, movingPlayer);
+                cout << to_string(movingPlayer) << " captured " << result->pairs_captured
+                     << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
+            }
+
+            if (result->outcome)
+            {
+                print_outcome(*result->outcome, state);
                 break;
             }
         }
 
-        // check for 5 in a row
-        bool hasFiveInARow = check_five_in_a_row(board, position);
-        if (hasFiveInARow)
-        {
-            cout << to_string(currentPlayer) << " wins by getting 5 in a row!" << endl;
-            break;
-        }
-
-        // switch turns
-        currentPlayer = opposite(currentPlayer);
+        print_board(state.board);
     }
-
-    // print final board state
-    print_board(board);
 }
 
 int main()
@@ -237,11 +162,10 @@ int main()
     {
         run_game();
     }
-    catch (const std::exception& ex)
+    catch (const exception& ex)
     {
-        std::cerr << "Fatal error: " << ex.what() << std::endl;
+        cerr << "Fatal error: " << ex.what() << endl;
         return 1;
     }
-
     return 0;
 }

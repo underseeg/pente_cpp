@@ -85,13 +85,13 @@ namespace cj::pente
             return std::forward<decltype(self)>(self).data[position.y * GridSize + position.x];
         }
 
-        /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.
-        /// @return A view of the rows of the board.
-        inline auto rows() const
+        /// @brief Returns a view of the board rows. Each row is represented as a span of spaces.
+        inline auto rows(this auto&& self)
         {
+            auto* cells = self.data.data();
             return std::views::iota(0zu, GridSize)
-                | std::views::transform([this](std::size_t row) {
-                    return std::span{data.data() + row * GridSize, GridSize};
+                | std::views::transform([cells](std::size_t row) {
+                    return std::span{cells + row * GridSize, GridSize};
                 });
         }
 

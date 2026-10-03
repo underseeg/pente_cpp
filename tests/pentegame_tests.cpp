@@ -2,9 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
-#include <initializer_list>
+#include <ranges>
 #include <utility>
 
 using namespace cj::pente;
@@ -12,17 +13,22 @@ using namespace std;
 
 namespace
 {
+    constexpr auto B = space::Black;
+    constexpr auto W = space::White;
+    constexpr auto _ = space::Empty;
+
+    template <std::size_t Height, std::size_t Width>
     game_state make_game_state(
         piece currentPlayer,
-        initializer_list<pair<coord, space>> initialPieces,
+        const space (&layout)[Height][Width],
         capture_pots captures = {})
     {
-        game_state initialState;
+        game_state initialState{};
         initialState.current_player = currentPlayer;
         initialState.captures = captures;
-        for (const auto& [position, value] : initialPieces)
+        for (auto [destinationRow, sourceRow] : views::zip(initialState.board.rows(), layout))
         {
-            initialState.board[position] = value;
+            ranges::copy(sourceRow, destinationRow.begin());
         }
         return initialState;
     }
@@ -83,25 +89,22 @@ TEST(game, leaves_state_unchanged_after_invalid_move)
 TEST(game, captures_pair_and_advances_turn)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{1, 5}, space::Black},
-        {{2, 5}, space::Black},
-        {{3, 5}, space::White}
-    })};
+    space layout[1][4] = {{_, B, B, W}};
+    game game{make_game_state(piece::White, layout)};
     const auto& state = game.state();
 
     // Act
-    const auto result = game.play({0, 5});
+    const auto result = game.play({0, 0});
 
     // Assert
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result->pairs_captured, 1u);
     EXPECT_FALSE(result->outcome.has_value());
 
-    EXPECT_EQ((state.board[0, 5]), space::White);
-    EXPECT_EQ((state.board[1, 5]), space::Empty);
-    EXPECT_EQ((state.board[2, 5]), space::Empty);
-    EXPECT_EQ((state.board[3, 5]), space::White);
+    EXPECT_EQ((state.board[0, 0]), space::White);
+    EXPECT_EQ((state.board[1, 0]), space::Empty);
+    EXPECT_EQ((state.board[2, 0]), space::Empty);
+    EXPECT_EQ((state.board[3, 0]), space::White);
     EXPECT_EQ(state.captures.pieces_captured_by_white, 2u);
     EXPECT_EQ(state.captures.pieces_captured_by_black, 0u);
     EXPECT_EQ(state.current_player, piece::Black);
@@ -111,14 +114,11 @@ TEST(game, captures_pair_and_advances_turn)
 TEST(game, captures_pair_for_black)
 {
     // Arrange
-    game game{make_game_state(piece::Black, {
-        {{1, 5}, space::White},
-        {{2, 5}, space::White},
-        {{3, 5}, space::Black}
-    })};
+    space layout[1][4] = {{_, W, W, B}};
+    game game{make_game_state(piece::Black, layout)};
 
     // Act
-    const auto result = game.play({0, 5});
+    const auto result = game.play({0, 0});
 
     // Assert
     ASSERT_TRUE(result.has_value());
@@ -131,67 +131,50 @@ TEST(game, captures_pair_for_black)
 // Captures work on all eight rays from the played position.
 TEST(game, captures_in_every_direction)
 {
-    //TODO clean up
-    constexpr array<pair<int, int>, 8> directions{{
-        {1, 0}, {-1, 0}, {0, 1}, {0, -1},
-        {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
-    }};
+    // Arrange
+    space layout[7][7]{
+        {W, _, _, W, _, _, W},
+        {_, B, _, B, _, B, _},
+        {_, _, B, B, B, _, _},
+        {W, B, B, _, B, B, W},
+        {_, _, B, B, B, _, _},
+        {_, B, _, B, _, B, _},
+        {W, _, _, W, _, _, W}
+    };
+    game game{make_game_state(piece::White, layout)};
+    const auto& state = game.state();
 
-    for (const auto [dx, dy] : directions)
-    {
-        // Arrange
-        constexpr coord origin{9, 5};
-        const auto along = [=](int distance) {
-            return coord{
-                static_cast<size_t>(static_cast<int>(origin.x) + distance * dx),
-                static_cast<size_t>(static_cast<int>(origin.y) + distance * dy)
-            };
-        };
-        game game{make_game_state(piece::White, {
-            {along(1), space::Black},
-            {along(2), space::Black},
-            {along(3), space::White}
-        })};
-        const auto& state = game.state();
-        
-        // Act
-        const auto result = game.play(origin);
+    // Act
+    const auto result = game.play({3, 3});
 
-        // Assert
-        ASSERT_TRUE(result.has_value());
-        EXPECT_EQ(result->pairs_captured, 1u);
-
-        EXPECT_EQ(state.captures.pieces_captured_by_white, 2u);
-        EXPECT_EQ((state.board[origin]), space::White);
-        EXPECT_EQ(state.current_player, piece::Black);
-    }
+    // Assert
+    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(result->outcome.has_value());
+    EXPECT_EQ(result->outcome->winner, piece::White);
+    EXPECT_EQ(result->outcome->reasons, win_reason::captures);
+    EXPECT_EQ(result->pairs_captured, 8u);
+    EXPECT_EQ(state.captures.pieces_captured_by_white, 16u);
+    EXPECT_EQ(state.captures.pieces_captured_by_black, 0u);
 }
 
 // A single move may capture a pair on each side of the placed piece.
 TEST(game, captures_pairs_on_both_sides_of_a_move)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{5, 5}, space::White},
-        {{6, 5}, space::Black},
-        {{7, 5}, space::Black},
-
-        {{9, 5}, space::Black},
-        {{10, 5}, space::Black},
-        {{11, 5}, space::White}
-    })};
+    space layout[1][7] = {{W, B, B, _, B, B, W}};
+    game game{make_game_state(piece::White, layout)};
     const auto& state = game.state();
 
     // Act
-    const auto result = game.play({8, 5});
+    const auto result = game.play({3, 0});
 
     // Assert
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result->pairs_captured, 2u);
-    EXPECT_EQ((state.board[6, 5]), space::Empty);
-    EXPECT_EQ((state.board[7, 5]), space::Empty);
-    EXPECT_EQ((state.board[9, 5]), space::Empty);
-    EXPECT_EQ((state.board[10, 5]), space::Empty);
+    EXPECT_EQ((state.board[1, 0]), space::Empty);
+    EXPECT_EQ((state.board[2, 0]), space::Empty);
+    EXPECT_EQ((state.board[4, 0]), space::Empty);
+    EXPECT_EQ((state.board[5, 0]), space::Empty);
     EXPECT_EQ(state.captures.pieces_captured_by_white, 4u);
 }
 
@@ -199,28 +182,26 @@ TEST(game, captures_pairs_on_both_sides_of_a_move)
 TEST(game, does_not_capture_without_a_bracket)
 {
     // Arrange
-    game singlePieceGame{make_game_state(piece::White, {
-        {{1, 5}, space::Black}
-    })};
-    game unbracketedPairGame{make_game_state(piece::White, {
-        {{1, 5}, space::Black},
-        {{2, 5}, space::Black}
-    })};
+    space singlePieceLayout[1][2] = {{_, B}};
+    game singlePieceGame{make_game_state(piece::White, singlePieceLayout)};
+
+    space unbracketedPairLayout[1][3] = {{_, B, B}};
+    game unbracketedPairGame{make_game_state(piece::White, unbracketedPairLayout)};
 
     // Act
-    const auto singlePieceResult = singlePieceGame.play({0, 5});
-    const auto unbracketedPairResult = unbracketedPairGame.play({0, 5});
+    const auto singlePieceResult = singlePieceGame.play({0, 0});
+    const auto unbracketedPairResult = unbracketedPairGame.play({0, 0});
 
     // Assert
     ASSERT_TRUE(singlePieceResult.has_value());
     EXPECT_EQ(singlePieceResult->pairs_captured, 0u);
-    EXPECT_EQ((singlePieceGame.state().board[1, 5]), space::Black);
+    EXPECT_EQ((singlePieceGame.state().board[1, 0]), space::Black);
     EXPECT_EQ(singlePieceGame.state().captures.pieces_captured_by_white, 0u);
 
     ASSERT_TRUE(unbracketedPairResult.has_value());
     EXPECT_EQ(unbracketedPairResult->pairs_captured, 0u);
-    EXPECT_EQ((unbracketedPairGame.state().board[1, 5]), space::Black);
-    EXPECT_EQ((unbracketedPairGame.state().board[2, 5]), space::Black);
+    EXPECT_EQ((unbracketedPairGame.state().board[1, 0]), space::Black);
+    EXPECT_EQ((unbracketedPairGame.state().board[2, 0]), space::Black);
     EXPECT_EQ(unbracketedPairGame.state().captures.pieces_captured_by_white, 0u);
 
 //    game edgeGame{make_game_state(piece::White, {})};
@@ -235,17 +216,13 @@ TEST(game, does_not_capture_without_a_bracket)
 TEST(game, wins_by_five_in_a_row_and_rejects_later_moves)
 {
     // Arrange
-    game game{make_game_state(piece::Black, {
-        {{7, 9}, space::Black},
-        {{8, 9}, space::Black},
-        {{9, 9}, space::Black},
-        {{10, 9}, space::Black}
-    })};
+    space layout[1][6] = {{B, B, B, B, _, _}};
+    game game{make_game_state(piece::Black, layout)};
     const auto& state = game.state();
 
     // Act
-    const auto winningMove = game.play({11, 9});
-    const auto rejected = game.play({12, 9});
+    const auto winningMove = game.play({4, 0});
+    const auto rejected = game.play({5, 0});
 
     // TODO chaining expected/optionals support?
 
@@ -260,22 +237,24 @@ TEST(game, wins_by_five_in_a_row_and_rejects_later_moves)
 
     ASSERT_FALSE(rejected.has_value());
     EXPECT_EQ(rejected.error(), move_error::game_finished);
-    EXPECT_EQ((state.board[12, 9]), space::Empty);
+    EXPECT_EQ((state.board[5, 0]), space::Empty);
 }
 
 // Diagonal lines are checked with the same five-in-a-row rule.
 TEST(game, wins_by_diagonal_five_in_a_row)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{2, 4}, space::White},
-        {{3, 5}, space::White},
-        {{4, 6}, space::White},
-        {{5, 7}, space::White}
-    })};
+    space layout[5][5] = {
+        {W, _, _, _, _},
+        {_, W, _, _, _},
+        {_, _, W, _, _},
+        {_, _, _, W, _},
+        {_, _, _, _, _}
+    };
+    game game{make_game_state(piece::White, layout)};
 
     // Act
-    const auto finalMove = game.play({6, 8});
+    const auto finalMove = game.play({4, 4});
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
@@ -289,12 +268,8 @@ TEST(game, wins_by_diagonal_five_in_a_row)
 TEST(game, recognizes_five_in_a_row_at_the_board_edge)
 {
     // Arrange
-    game game{make_game_state(piece::Black, {
-        {{0, 0}, space::Black},
-        {{1, 0}, space::Black},
-        {{2, 0}, space::Black},
-        {{3, 0}, space::Black}
-    })};
+    space layout[1][5] = {{B, B, B, B, _}};
+    game game{make_game_state(piece::Black, layout)};
 
     // Act
     const auto finalMove = game.play({4, 0});
@@ -311,14 +286,16 @@ TEST(game, recognizes_five_in_a_row_at_the_board_edge)
 TEST(game, does_not_win_with_only_four_in_a_row)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{2, 4}, space::White},
-        {{3, 5}, space::White},
-        {{4, 6}, space::White}
-    })};
+    space layout[4][4] = {
+        {W, _, _, _},
+        {_, W, _, _},
+        {_, _, W, _},
+        {_, _, _, _}
+    };
+    game game{make_game_state(piece::White, layout)};
 
     // Act
-    const auto fourthPiece = game.play({5, 7});
+    const auto fourthPiece = game.play({3, 3});
 
     // Assert
     ASSERT_TRUE(fourthPiece.has_value());
@@ -331,14 +308,12 @@ TEST(game, does_not_win_with_only_four_in_a_row)
 TEST(game, wins_by_capture_threshold_without_five_in_a_row)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{1, 5}, space::Black},
-        {{2, 5}, space::Black},
-        {{3, 5}, space::White}
-    }, {.pieces_captured_by_white = 8})};
+    space layout[1][4] = {{_, B, B, W}};
+    game game{make_game_state(
+        piece::White, layout, {.pieces_captured_by_white = 8})};
 
     // Act
-    const auto winningMove = game.play({0, 5});
+    const auto winningMove = game.play({0, 0});
 
     // Assert
     ASSERT_TRUE(winningMove.has_value());
@@ -355,18 +330,12 @@ TEST(game, wins_by_capture_threshold_without_five_in_a_row)
 TEST(game, wins_when_captures_pass_threshold)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{5, 5}, space::White},
-        {{6, 5}, space::Black},
-        {{7, 5}, space::Black},
-
-        {{9, 5}, space::Black},
-        {{10, 5}, space::Black},
-        {{11, 5}, space::White}
-    }, {.pieces_captured_by_white = 8})};
+    space layout[1][7] = {{W, B, B, _, B, B, W}};
+    game game{make_game_state(
+        piece::White, layout, {.pieces_captured_by_white = 8})};
 
     // Act
-    const auto winningMove = game.play({8, 5});
+    const auto winningMove = game.play({3, 0});
 
     // Assert
     ASSERT_TRUE(winningMove.has_value());
@@ -383,25 +352,30 @@ TEST(game, wins_when_captures_pass_threshold)
 // A full board without a winning line is a draw.
 TEST(game, ends_in_a_draw_when_the_board_is_full)
 {
-    //TODO tidy
-    
     // Arrange
-    auto initialState = make_game_state(piece::Black, {});
-    for (size_t y = 0; y < GridSize; ++y)
-    {
-        for (size_t x = 0; x < GridSize; ++x)
-        {
-            if (x == 0 && y == 0)
-            {
-                continue;
-            }
-
-            initialState.board[x, y] = (x + 2 * y) % 5 == 0
-                ? space::Black
-                : space::White;
-        }
-    }
-    game game{initialState};
+    space layout[GridSize][GridSize]{
+        {_, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W},
+        {W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B},
+        {W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W},
+        {W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W},
+        {W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W},
+        {B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W},
+        {W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B},
+        {W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W},
+        {W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W},
+        {W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W},
+        {B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W},
+        {W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B},
+        {W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W},
+        {W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W},
+        {W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W},
+        {B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W},
+        {W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B},
+        {W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W},
+        {W, W, W, W, B, W, W, W, W, B, W, W, W, W, B, W, W, W, W}
+    };
+    game game{make_game_state(piece::Black, layout)};
+    const game_state& state = game.state();
 
     // Act
     const auto finalMove = game.play({0, 0});
@@ -411,27 +385,25 @@ TEST(game, ends_in_a_draw_when_the_board_is_full)
     ASSERT_TRUE(finalMove->outcome.has_value());
     EXPECT_FALSE(finalMove->outcome->winner.has_value());
     EXPECT_EQ(finalMove->outcome->reasons, win_reason::none);
-    EXPECT_EQ((game.state().board[0, 0]), space::Black);
-    EXPECT_EQ(game.state().current_player, piece::Black);
+    EXPECT_EQ((state.board[0, 0]), space::Black);
 }
 
 // A move that meets both win conditions retains both reasons.
 TEST(game, records_simultaneous_capture_and_line_wins)
 {
     // Arrange
-    game game{make_game_state(piece::White, {
-        {{0, 12}, space::White},
-        {{0, 13}, space::White},
-        {{0, 14}, space::White},
-        {{0, 15}, space::White},
-
-        {{1, 16}, space::Black},
-        {{2, 16}, space::Black},
-        {{3, 16}, space::White}
-    }, {.pieces_captured_by_white = 8})};
+    space layout[5][4] = {
+        {W, _, _, _},
+        {W, _, _, _},
+        {W, _, _, _},
+        {W, _, _, _},
+        {_, B, B, W}
+    };
+    game game{make_game_state(
+        piece::White, layout, {.pieces_captured_by_white = 8})};
 
     // Act
-    const auto finalMove = game.play({0, 16});
+    const auto finalMove = game.play({0, 4});
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
@@ -444,5 +416,3 @@ TEST(game, records_simultaneous_capture_and_line_wins)
     EXPECT_EQ(game.state().captures.pieces_captured_by_white, 10u);
     EXPECT_EQ(game.state().current_player, piece::White);
 }
-
-//TODO experiment with a board initialiser that can be written {{B, W, W, B},{_, _, _, _},...} and be copied directly into the game state.

@@ -112,7 +112,7 @@ option(ENABLE_CPPCHECK "Run static analysis" OFF)
 
 if(ENABLE_CPPCHECK)
     find_program(CPPCHECK_EXE NAMES cppcheck REQUIRED)
-    
+
     set(CPPCHECK_OPTIONS
         --project=${CMAKE_BINARY_DIR}/compile_commands.json
         --enable=all
@@ -123,6 +123,7 @@ if(ENABLE_CPPCHECK)
         --error-exitcode=1
         --suppress=missingIncludeSystem
         --suppress=checkersReport
+        --suppress=functionStatic:src/penteboard.h:90 #exclude current false positive https://sourceforge.net/p/cppcheck/discussion/general/thread/700cb0669a/
         --inline-suppr
     )
 

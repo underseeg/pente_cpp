@@ -198,7 +198,6 @@ namespace cj::pente
         auto& totalCapturedPieces = captured_pieces_for(current_state.captures, current_state.current_player);
         totalCapturedPieces += capturedPieces;
 
-        // TODO verify none is not combined with five in a row
         auto reasons = totalCapturedPieces >= 10
             ? win_reason::captures
             : win_reason::none;

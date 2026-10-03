@@ -29,9 +29,9 @@ namespace cj::pente
     /// The bit values allow a move to satisfy both win conditions without allocating.
     enum class win_reason : unsigned char
     {
-        none = 0,
-        captures = 1,
-        five_in_a_row = 2
+        none = 0x0,
+        captures = 0x1,
+        five_in_a_row = 0x2
     };
 
     /// @brief Combines win conditions without dynamic allocation.

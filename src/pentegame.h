@@ -4,6 +4,7 @@
 
 #include <expected>
 #include <optional>
+#include <type_traits>
 
 namespace cj::pente
 {
@@ -14,10 +15,9 @@ namespace cj::pente
         unsigned int pieces_captured_by_white {0}; ///< Pieces captured by the white player.
     };
 
-    // TODO at this point should it just be a member method?
-
     /// @brief Returns a player's captured-piece total while preserving the pot's constness.
     template <typename Captures>
+        requires std::same_as<std::remove_cvref_t<Captures>, capture_pots>
     constexpr auto& captured_pieces_for(Captures& captures, piece player)
     {
         return player == piece::Black

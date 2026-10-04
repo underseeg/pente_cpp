@@ -123,7 +123,7 @@ if(ENABLE_CPPCHECK)
         --error-exitcode=1
         --suppress=missingIncludeSystem
         --suppress=checkersReport
-        --suppress=functionStatic:src/penteboard.h:90 #exclude current false positive https://sourceforge.net/p/cppcheck/discussion/general/thread/700cb0669a/
+        --suppress=functionStatic:src/penteboard.h #exclude current false positive https://sourceforge.net/p/cppcheck/discussion/general/thread/700cb0669a/
         --inline-suppr
     )
 

@@ -34,6 +34,10 @@ namespace
     }
 }
 
+// Static assertion tests
+static_assert(same_as<decltype(captured_pieces_for(declval<capture_pots&>(), piece::Black)), unsigned int&>);
+static_assert(same_as<decltype(captured_pieces_for(declval<const capture_pots&>(), piece::Black)), const unsigned int&>);
+
 // The starting colour occupies the centre, and its opponent moves first.
 TEST(game, initializes_opening_and_first_turn)
 {

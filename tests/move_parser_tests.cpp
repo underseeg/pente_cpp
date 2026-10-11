@@ -11,7 +11,10 @@ namespace
 {
     void test_valid_move(std::string_view input, coord expectedPosition)
     {
+        // Act
         const auto result = parse_move_from_string(input);
+        
+        // Assert
         ASSERT_TRUE(result.has_value());
         EXPECT_EQ(result->x, expectedPosition.x);
         EXPECT_EQ(result->y, expectedPosition.y);
@@ -19,7 +22,10 @@ namespace
 
     void test_invalid_move(std::string_view input, move_parse_error expectedError)
     {
+        // Act
         const auto result = parse_move_from_string(input);
+
+        // Assert
         ASSERT_FALSE(result.has_value());
         EXPECT_EQ(result.error(), expectedError);
     }

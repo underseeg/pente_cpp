@@ -28,11 +28,6 @@ namespace cj::pente::move_parser
 
         std::expected<parsed_segment, move_parse_error> parse_direction(std::string_view input)
         {
-            if (input.empty())
-            {
-                return std::unexpected{move_parse_error::invalid_format};
-            }
-
             char direction = toupper_safe(input.front());
             if (direction != 'U' && direction != 'D' && direction != 'L' && direction != 'R')
             {
@@ -83,11 +78,22 @@ namespace cj::pente::move_parser
             coordinate += positive ? segment.distance : -segment.distance;
             return {segment.remaining};
         }
+
+        std::expected<std::string_view, move_parse_error> parse_and_apply_segment(parsed_move& move, std::string_view input)
+        {
+            if (input.empty())
+            {
+                return std::unexpected{move_parse_error::invalid_format};
+            }
+
+            using namespace std::placeholders;
+            auto apply_to_move = std::bind(apply_segment, std::ref(move), _1);
+            return parse_direction(input).and_then(parse_distance).and_then(apply_to_move);
+        }
     }
 
     std::expected<coord, move_parse_error> parse_move_from_string(std::string_view input)
     {
-        using namespace std::placeholders;
         parsed_move move{{BoardCentre, BoardCentre}};
 
         if (input.size() == 1 && toupper_safe(input.front()) == 'O')
@@ -95,24 +101,21 @@ namespace cj::pente::move_parser
             return move.position;
         }
 
-        auto apply_to_move = std::bind(apply_segment, std::ref(move), _1);
-        auto input_after_first = parse_direction(input).and_then(parse_distance).and_then(apply_to_move);
+        auto input_after_first = parse_and_apply_segment(move, input);
         if (!input_after_first)
         {
             return std::unexpected{input_after_first.error()};
         }
-        input = *input_after_first;
 
         // Parse the second component of the move if it exists.
-        if (!input.empty())
+        if (!input_after_first->empty())
         {
-            auto input_after_second = parse_direction(input).and_then(parse_distance).and_then(apply_to_move);
+            auto input_after_second = parse_and_apply_segment(move, *input_after_first);
             if (!input_after_second)
             {
                 return std::unexpected{input_after_second.error()};
             }
-            input = *input_after_second;
-            if (!input.empty())
+            if (!input_after_second->empty())
             {
                 return std::unexpected{move_parse_error::invalid_format};
             }

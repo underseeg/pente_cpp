@@ -40,14 +40,14 @@ TEST(move_parser, parses_centre_in_either_case)
 TEST(move_parser, parses_single_direction_and_zero_distance)
 {
     test_valid_move("R3", {BoardCentre + 3, BoardCentre});
-    test_valid_move("u2", {BoardCentre, BoardCentre - 2});
+    test_valid_move("U2", {BoardCentre, BoardCentre - 2});
     test_valid_move("L0", {BoardCentre, BoardCentre});
 }
 
 TEST(move_parser, parses_horizontal_and_vertical_components_in_either_order)
 {
     test_valid_move("R3U2", {BoardCentre + 3, BoardCentre - 2});
-    test_valid_move("d4l1", {BoardCentre - 1, BoardCentre + 4});
+    test_valid_move("D4L1", {BoardCentre - 1, BoardCentre + 4});
     test_valid_move("U2R3", {BoardCentre + 3, BoardCentre - 2});
 }
 

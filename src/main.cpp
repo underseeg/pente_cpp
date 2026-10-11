@@ -11,9 +11,9 @@ using namespace cj::pente;
 
 namespace
 {
-    template <typename RandomEngine>
-    piece pick_start_colour(RandomEngine& engine)
+    piece pick_start_colour()
     {
+        default_random_engine engine{random_device{}()};
         uniform_int_distribution<int> distribution{0, 1};
         return distribution(engine) == 0 ? piece::Black : piece::White;
     }
@@ -53,7 +53,7 @@ namespace
         }
     }
 
-    coord next_move_from_input()
+    coord get_next_move_from_input()
     {
         while (true)
         {
@@ -84,8 +84,9 @@ namespace
         }
     }
 
-    void print_outcome(const game_outcome& outcome, const game_state& state)
+    void print_outcome(const game_state& state)
     {
+        const game_outcome& outcome = *state.outcome;
         if (!outcome.winner)
         {
             cout << "The game ends in a draw." << endl;
@@ -105,53 +106,64 @@ namespace
         }
     }
 
+        void print_starting_colour(const piece startingColour)
+    {
+        cout << "Starting colour: " << to_string(startingColour) << endl;
+    }
+
+    void print_current_turn(const piece currentPlayer)
+    {
+        cout << "Current turn: " << to_string(currentPlayer) << endl;
+    }
+
+    void print_move_error(const move_error& error)
+    {
+        switch (error)
+        {
+            case move_error::out_of_bounds:
+                cout << "Move is outside the board. Try again." << endl;
+                break;
+            case move_error::occupied:
+                cout << "That space is already occupied. Try again." << endl;
+                break;
+            case move_error::game_finished:
+                throw logic_error{"Cannot play a move after the game has finished"};
+        }
+    }
+
+    void print_any_captured_pairs(const move_report& result, const game_state& state)
+    {
+        if (result.pairs_captured > 0)
+        {
+            const auto movingPlayer = state.current_player;
+            const auto totalCapturedPieces = captured_pieces_for(state.captures, movingPlayer);
+            cout << to_string(movingPlayer) << " captured " << result.pairs_captured
+                 << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
+        }
+    }
+
     void run_game()
     {
-        default_random_engine engine{random_device{}()};
-        const auto startingColour = pick_start_colour(engine);
+        const auto startingColour = pick_start_colour();
         game game{startingColour};
         const auto& state = game.state();
 
-        cout << "Starting colour: " << to_string(startingColour) << endl;
+        print_starting_colour(startingColour);
 
-        while (true)
+        while (!state.outcome)
         {
             print_board(state.board);
-            cout << "Current turn: " << to_string(state.current_player) << endl;
+            print_current_turn(state.current_player);
 
-            const auto position = next_move_from_input();
+            const auto position = get_next_move_from_input();
             const auto result = game.play(position);
             if (!result)
-            {
-                switch (result.error())
-                {
-                    case move_error::out_of_bounds:
-                        cout << "Move is outside the board. Try again." << endl;
-                        break;
-                    case move_error::occupied:
-                        cout << "That space is already occupied. Try again." << endl;
-                        break;
-                    case move_error::game_finished:
-                        throw logic_error{"Cannot play a move after the game has finished"};
-                }
-                continue;
-            }
-
-            if (result->pairs_captured > 0)
-            {
-                const auto movingPlayer = state.current_player;
-                const auto totalCapturedPieces = captured_pieces_for(state.captures, movingPlayer);
-                cout << to_string(movingPlayer) << " captured " << result->pairs_captured
-                     << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
-            }
-
-            if (result->outcome)
-            {
-                print_outcome(*result->outcome, state);
-                break;
-            }
+                print_move_error(result.error());
+            else
+                print_any_captured_pairs(*result, state);
         }
-
+        
+        print_outcome(state);
         print_board(state.board);
     }
 }

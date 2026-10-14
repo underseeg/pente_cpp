@@ -11,6 +11,8 @@ namespace
 {
     void test_valid_move(std::string_view input, coord expectedPosition)
     {
+        SCOPED_TRACE(::testing::Message() << "input: \"" << input << "\"");
+
         // Act
         const auto result = parse_move_from_string(input);
         
@@ -22,6 +24,8 @@ namespace
 
     void test_invalid_move(std::string_view input, move_parse_error expectedError)
     {
+        SCOPED_TRACE(::testing::Message() << "input: \"" << input << "\"");
+        
         // Act
         const auto result = parse_move_from_string(input);
 

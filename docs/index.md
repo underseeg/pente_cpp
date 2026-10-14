@@ -34,7 +34,7 @@ if (move->outcome) {
 }
 ```
 
-Read the current state by const reference to display the board, capture totals, current player, and final outcome. As it's a reference it will reflect subsequent moves; copy-by-value the `game_state` if needed.
+Read the current state by const reference to query the board, capture totals, current player, and final outcome. As it's a reference it will reflect subsequent moves; copy-by-value the `game_state` if needed.
 
 ```cpp
 const auto& state = game.get_current_state();
@@ -43,4 +43,4 @@ for (const auto row : state.board_state.rows()) {
 }
 ```
 
-The game ends when a player captures five pairs, makes five or more contiguous pieces, or fills the board without a winner. See `run_game()` in `src/main.cpp` for the command-line flow.
+The game ends when a player captures five pairs, has five or more contiguous pieces, or fills the board without a winner. See `run_game()` in `src/main.cpp` for the command-line flow.

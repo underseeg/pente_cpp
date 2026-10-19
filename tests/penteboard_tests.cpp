@@ -55,30 +55,30 @@ TEST(penteboard, is_in_bounds)
 }
 
 // b.rows() should produce the same values as b[x, y] for all valid coordinates.
-TEST(penteboard, get_rows_matches_indexing)
+TEST(penteboard, rows_matches_indexing)
 {
+    // Arrange
     board b{};
 
     const auto coords = views::iota(0zu, GridSize * GridSize) | views::transform(to_coord);
 
+    // Act
     for (const auto& position : coords)
     {
         b[position] = space_from_coords(position.x, position.y);
     }
 
-    size_t y{0};
-    for (const auto row : b.rows())
+    // Assert
+    EXPECT_EQ(b.rows().size(), GridSize);
+
+    for (const auto [y, row] : std::views::enumerate(b.rows()))
     {
         EXPECT_EQ(row.size(), GridSize);
 
-        for (size_t x{0}; x < GridSize; x++)
+        for (auto [x, value] : std::views::enumerate(row))
         {
-            EXPECT_EQ(row[x], space_from_coords(x, y));
-            EXPECT_EQ(row[x], (b[x, y]));
+            EXPECT_EQ(value, space_from_coords(x, y));
+            EXPECT_EQ(value, (b[x, y]));
         }
-
-        y++;
     }
-    
-    EXPECT_EQ(y, GridSize);
 }

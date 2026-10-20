@@ -106,7 +106,7 @@ namespace
         }
     }
 
-        void print_starting_colour(const piece startingColour)
+    void print_starting_colour(const piece startingColour)
     {
         cout << "Starting colour: " << to_string(startingColour) << endl;
     }

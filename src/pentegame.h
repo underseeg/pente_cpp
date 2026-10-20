@@ -79,14 +79,14 @@ namespace cj::pente
     public:
         /// @brief Starts a game with the chosen colour at the centre.
         /// The opposite colour is first to make a move.
-        explicit game(piece startingColour);
+        explicit game(piece startingColour) noexcept;
 
         /// @brief Starts from the supplied state without applying opening-game setup.
-        explicit game(const game_state& initialState);
+        explicit game(const game_state& initialState) noexcept;
 
         /// @brief Applies a legal move and updates captures, outcome, and turn.
         /// @return The move report, or the reason the move was rejected.
-        std::expected<move_report, move_error> play(coord position);
+        std::expected<move_report, move_error> play(coord position) noexcept;
 
         /// @brief Returns a read-only reference to the current board.
         ///

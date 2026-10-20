@@ -14,7 +14,7 @@ namespace
         SCOPED_TRACE(::testing::Message() << "input: \"" << input << "\"");
 
         // Act
-        const auto result = parse_move_from_string(input);
+        const auto result = from_string(input);
         
         // Assert
         ASSERT_TRUE(result.has_value());
@@ -27,7 +27,7 @@ namespace
         SCOPED_TRACE(::testing::Message() << "input: \"" << input << "\"");
         
         // Act
-        const auto result = parse_move_from_string(input);
+        const auto result = from_string(input);
 
         // Assert
         ASSERT_FALSE(result.has_value());

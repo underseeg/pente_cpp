@@ -67,7 +67,7 @@ namespace
 
             cout << endl;
 
-            const auto parseResult = move_parser::parse_move_from_string(input);
+            const auto parseResult = move_parser::from_string(input);
 
             if (parseResult)
             {

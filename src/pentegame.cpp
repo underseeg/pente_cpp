@@ -178,17 +178,17 @@ namespace cj::pente
         }
     }
 
-    game::game(piece startingColour)
+    game::game(piece startingColour) noexcept
         : game(opening_state(startingColour))
     {
     }
 
-    game::game(const game_state& initialState)
+    game::game(const game_state& initialState) noexcept
         : current_state{initialState}
     {
     }
 
-    std::expected<move_report, move_error> game::play(coord position)
+    std::expected<move_report, move_error> game::play(coord position) noexcept
     {
         if (current_state.outcome)
         {

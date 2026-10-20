@@ -43,9 +43,9 @@ for (const auto row : game.board().rows()) {
     // Display each row.
 }
 
-const auto blackCaptures = game.captured_pieces_for(cj::pente::piece::Black);
+const auto blackCaptures = game.captures_by(cj::pente::piece::Black);
 const auto currentPlayer = game.current_player();
-const auto& outcome = game.outcome();
+const auto outcome = game.outcome();
 ```
 
-The game ends when a player captures five pairs, has five or more contiguous pieces, or fills the board without a winner. See `run_game()` in `src/main.cpp` for the command-line flow.
+The game ends when a player captures five pairs, has five or more contiguous pieces, or the board fills without a winner. See `run_game()` in `src/main.cpp` for the command-line flow.

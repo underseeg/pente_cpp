@@ -19,5 +19,5 @@ namespace cj::pente::move_parser
     /// Directions are U, D, L, and R followed by a distance, for example R3U2.
     /// Each axis may be specified at most once. O selects the centre.
     /// Invalid input returns an error.
-    std::expected<coord, move_parse_error> parse_move_from_string(std::string_view input);
+    std::expected<coord, move_parse_error> from_string(std::string_view input);
 }

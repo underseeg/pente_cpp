@@ -92,7 +92,7 @@ namespace cj::pente::move_parser
         }
     }
 
-    std::expected<coord, move_parse_error> parse_move_from_string(std::string_view input)
+    std::expected<coord, move_parse_error> from_string(std::string_view input)
     {
         parsed_move move{{BoardCentre, BoardCentre}};
 

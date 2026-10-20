@@ -4,7 +4,6 @@
 
 #include <expected>
 #include <optional>
-#include <type_traits>
 
 namespace cj::pente
 {
@@ -14,16 +13,6 @@ namespace cj::pente
         unsigned int pieces_captured_by_black {0}; ///< Pieces captured by the black player.
         unsigned int pieces_captured_by_white {0}; ///< Pieces captured by the white player.
     };
-
-    /// @brief Returns a player's captured-piece total while preserving the pot's constness.
-    template <typename Captures>
-        requires std::same_as<std::remove_cvref_t<Captures>, capture_pots>
-    constexpr auto& captured_pieces_for(Captures& captures, piece player)
-    {
-        return player == piece::Black
-            ? captures.pieces_captured_by_black
-            : captures.pieces_captured_by_white;
-    }
 
     /// @brief The win conditions completed by the final move.
     /// The bit values allow a move to satisfy both win conditions without allocating.
@@ -100,12 +89,20 @@ namespace cj::pente
         /// @return The move report, or the reason the move was rejected.
         std::expected<move_report, move_error> play(coord position);
 
-        /// @brief Returns a read-only reference to the game's current state.
+        /// @brief Returns a read-only reference to the current board.
         ///
-        /// The reference remains valid for the lifetime of this game. Its values
-        /// reflect later calls to play(), so callers should copy it if they need
-        /// to retain an earlier state.
-        const game_state& state() const noexcept;
+        /// The reference remains valid for the lifetime of this game and reflects
+        /// later calls to play().
+        const cj::pente::board& board() const noexcept;
+
+        /// @brief Returns a copy of the current player.
+        piece current_player() const noexcept;
+
+        /// @brief Returns a copy of the game's outcome, if finished.
+        std::optional<game_outcome> outcome() const noexcept;
+
+        /// @brief Returns a copy of the player's captured-piece total.
+        unsigned int captures_by(piece player) const noexcept;
 
     private:
         // The game is the only mutable owner; callers observe this state by const reference.

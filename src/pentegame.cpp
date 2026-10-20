@@ -4,6 +4,7 @@
 #include <array>
 #include <ranges>
 #include <utility>
+#include <type_traits>
 
 namespace cj::pente
 {
@@ -165,6 +166,16 @@ namespace cj::pente
             initialState.current_player = opposite(startingColour);
             return initialState;
         }
+
+        /// @brief Returns a player's captured-piece total while preserving the pot's constness.
+        template <typename Captures>
+            requires std::same_as<std::remove_cvref_t<Captures>, capture_pots>
+        constexpr auto& captured_pieces_for(Captures& captures, piece player)
+        {
+            return player == piece::Black
+                ? captures.pieces_captured_by_black
+                : captures.pieces_captured_by_white;
+        }
     }
 
     game::game(piece startingColour)
@@ -224,8 +235,23 @@ namespace cj::pente
         return move_report{capturedPieces / 2, current_state.outcome};
     }
 
-    const game_state& game::state() const noexcept
+    const cj::pente::board& game::board() const noexcept
     {
-        return current_state;
+        return current_state.board;
+    }
+
+    piece game::current_player() const noexcept
+    {
+        return current_state.current_player;
+    }
+
+    std::optional<game_outcome> game::outcome() const noexcept
+    {
+        return current_state.outcome;
+    }
+
+    unsigned int game::captures_by(piece player) const noexcept
+    {
+        return captured_pieces_for(current_state.captures, player);
     }
 }

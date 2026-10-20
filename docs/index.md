@@ -34,13 +34,18 @@ if (move->outcome) {
 }
 ```
 
-Read the current state by const reference to query the board, capture totals, current player, and final outcome. As it's a reference it will reflect subsequent moves; copy-by-value the `game_state` if needed.
+Read each part of the current state through the game's const accessors.
+
+> Note: The board is returned by reference and reflects subsequent moves.
 
 ```cpp
-const auto& state = game.get_current_state();
-for (const auto row : state.board_state.rows()) {
+for (const auto row : game.board().rows()) {
     // Display each row.
 }
+
+const auto blackCaptures = game.captured_pieces_for(cj::pente::piece::Black);
+const auto currentPlayer = game.current_player();
+const auto& outcome = game.outcome();
 ```
 
 The game ends when a player captures five pairs, has five or more contiguous pieces, or fills the board without a winner. See `run_game()` in `src/main.cpp` for the command-line flow.

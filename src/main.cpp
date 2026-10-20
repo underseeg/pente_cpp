@@ -84,9 +84,9 @@ namespace
         }
     }
 
-    void print_outcome(const game_state& state)
+    void print_outcome(const game& finishedGame)
     {
-        const game_outcome& outcome = *state.outcome;
+        const game_outcome& outcome = *finishedGame.outcome();
         if (!outcome.winner)
         {
             cout << "The game ends in a draw." << endl;
@@ -96,7 +96,7 @@ namespace
         const auto winner = to_string(*outcome.winner);
         if (has_reason(outcome.reasons, win_reason::captures))
         {
-            const auto capturedPieces = captured_pieces_for(state.captures, *outcome.winner);
+            const auto capturedPieces = finishedGame.captures_by(*outcome.winner);
             cout << winner << " wins by capturing at least five pairs! Total captured pieces: "
                  << capturedPieces << endl;
         }
@@ -131,12 +131,12 @@ namespace
         }
     }
 
-    void print_any_captured_pairs(const move_report& result, const game_state& state)
+    void print_any_captured_pairs(const move_report& result, const game& currentGame)
     {
         if (result.pairs_captured > 0)
         {
-            const auto movingPlayer = state.current_player;
-            const auto totalCapturedPieces = captured_pieces_for(state.captures, movingPlayer);
+            const auto movingPlayer = currentGame.current_player();
+            const auto totalCapturedPieces = currentGame.captures_by(movingPlayer);
             cout << to_string(movingPlayer) << " captured " << result.pairs_captured
                  << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
         }
@@ -144,27 +144,27 @@ namespace
 
     void run_game()
     {
+        // TODO streamline to a single call
         const auto startingColour = pick_start_colour();
         game game{startingColour};
-        const auto& state = game.state();
 
         print_starting_colour(startingColour);
 
-        while (!state.outcome)
+        while (!game.outcome())
         {
-            print_board(state.board);
-            print_current_turn(state.current_player);
+            print_board(game.board());
+            print_current_turn(game.current_player());
 
             const auto position = get_next_move_from_input();
             const auto result = game.play(position);
             if (!result)
                 print_move_error(result.error());
             else
-                print_any_captured_pairs(*result, state);
+                print_any_captured_pairs(*result, game);
         }
         
-        print_outcome(state);
-        print_board(state.board);
+        print_outcome(game);
+        print_board(game.board());
     }
 }
 

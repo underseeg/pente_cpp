@@ -142,13 +142,16 @@ namespace
         }
     }
 
+    game start_game()
+    {
+        const auto startingColour = pick_start_colour();
+        print_starting_colour(startingColour);
+        return game{startingColour};
+    }
+
     void run_game()
     {
-        // TODO streamline to a single call
-        const auto startingColour = pick_start_colour();
-        game game{startingColour};
-
-        print_starting_colour(startingColour);
+        game game = start_game();
 
         while (!game.outcome())
         {

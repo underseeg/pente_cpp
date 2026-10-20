@@ -58,7 +58,6 @@ namespace cj::pente
     struct move_report
     {
         unsigned int pairs_captured{0}; ///< Pairs captured by this move.
-        std::optional<game_outcome> outcome; ///< Set when this move ends the game.
     };
 
     /// @brief Why a move was rejected.

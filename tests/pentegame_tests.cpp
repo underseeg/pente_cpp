@@ -96,7 +96,7 @@ TEST(game, captures_pair_and_advances_turn)
     // Assert
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result->pairs_captured, 1u);
-    EXPECT_FALSE(result->outcome.has_value());
+    EXPECT_FALSE(game.outcome().has_value());
 
     EXPECT_EQ((game.board()[0, 0]), space::White);
     EXPECT_EQ((game.board()[1, 0]), space::Empty);
@@ -145,9 +145,9 @@ TEST(game, captures_in_every_direction)
 
     // Assert
     ASSERT_TRUE(result.has_value());
-    ASSERT_TRUE(result->outcome.has_value());
-    EXPECT_EQ(result->outcome->winner, piece::White);
-    EXPECT_EQ(result->outcome->reasons, win_reason::captures);
+    EXPECT_TRUE(game.outcome().has_value());
+    EXPECT_EQ(game.outcome()->winner, piece::White);
+    EXPECT_EQ(game.outcome()->reasons, win_reason::captures);
     EXPECT_EQ(result->pairs_captured, 8u);
     EXPECT_EQ(game.captures_by(piece::White), 16u);
     EXPECT_EQ(game.captures_by(piece::Black), 0u);
@@ -213,11 +213,11 @@ TEST(game, wins_by_five_in_a_row_and_rejects_later_moves)
 
     // Assert
     ASSERT_TRUE(winningMove.has_value());
-    ASSERT_TRUE(winningMove->outcome.has_value());
-    ASSERT_TRUE(winningMove->outcome->winner.has_value());
-    EXPECT_EQ(*winningMove->outcome->winner, piece::Black);
-    EXPECT_TRUE(has_reason(winningMove->outcome->reasons, win_reason::five_in_a_row));
-    EXPECT_FALSE(has_reason(winningMove->outcome->reasons, win_reason::captures));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::Black);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
+    EXPECT_FALSE(has_reason(game.outcome()->reasons, win_reason::captures));
     EXPECT_EQ(game.current_player(), piece::Black);
 
     ASSERT_FALSE(rejected.has_value());
@@ -243,10 +243,10 @@ TEST(game, wins_by_diagonal_five_in_a_row)
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
-    ASSERT_TRUE(finalMove->outcome.has_value());
-    ASSERT_TRUE(finalMove->outcome->winner.has_value());
-    EXPECT_EQ(*finalMove->outcome->winner, piece::White);
-    EXPECT_TRUE(has_reason(finalMove->outcome->reasons, win_reason::five_in_a_row));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::White);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
 }
 
 // A line beginning at the edge still counts as five contiguous pieces.
@@ -261,10 +261,10 @@ TEST(game, recognizes_five_in_a_row_at_the_board_edge)
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
-    ASSERT_TRUE(finalMove->outcome.has_value());
-    ASSERT_TRUE(finalMove->outcome->winner.has_value());
-    EXPECT_EQ(*finalMove->outcome->winner, piece::Black);
-    EXPECT_TRUE(has_reason(finalMove->outcome->reasons, win_reason::five_in_a_row));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::Black);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
 }
 
 // Four contiguous pieces are not enough to end the game.
@@ -284,7 +284,6 @@ TEST(game, does_not_win_with_only_four_in_a_row)
 
     // Assert
     ASSERT_TRUE(fourthPiece.has_value());
-    EXPECT_FALSE(fourthPiece->outcome.has_value());
     EXPECT_FALSE(game.outcome().has_value());
     EXPECT_EQ(game.current_player(), piece::Black);
 }
@@ -302,11 +301,11 @@ TEST(game, wins_by_capture_threshold_without_five_in_a_row)
 
     // Assert
     ASSERT_TRUE(winningMove.has_value());
-    ASSERT_TRUE(winningMove->outcome.has_value());
-    ASSERT_TRUE(winningMove->outcome->winner.has_value());
-    EXPECT_EQ(*winningMove->outcome->winner, piece::White);
-    EXPECT_TRUE(has_reason(winningMove->outcome->reasons, win_reason::captures));
-    EXPECT_FALSE(has_reason(winningMove->outcome->reasons, win_reason::five_in_a_row));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::White);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::captures));
+    EXPECT_FALSE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
     EXPECT_EQ(game.captures_by(piece::White), 10u);
     EXPECT_EQ(game.current_player(), piece::White);
 }
@@ -325,11 +324,11 @@ TEST(game, wins_when_captures_pass_threshold)
     // Assert
     ASSERT_TRUE(winningMove.has_value());
     ASSERT_EQ(winningMove->pairs_captured, 2u);
-    ASSERT_TRUE(winningMove->outcome.has_value());
-    ASSERT_TRUE(winningMove->outcome->winner.has_value());
-    EXPECT_EQ(*winningMove->outcome->winner, piece::White);
-    EXPECT_TRUE(has_reason(winningMove->outcome->reasons, win_reason::captures));
-    EXPECT_FALSE(has_reason(winningMove->outcome->reasons, win_reason::five_in_a_row));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::White);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::captures));
+    EXPECT_FALSE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
     EXPECT_EQ(game.captures_by(piece::White), 12u);
     EXPECT_EQ(game.current_player(), piece::White);
 }
@@ -366,9 +365,9 @@ TEST(game, ends_in_a_draw_when_the_board_is_full)
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
-    ASSERT_TRUE(finalMove->outcome.has_value());
-    EXPECT_FALSE(finalMove->outcome->winner.has_value());
-    EXPECT_EQ(finalMove->outcome->reasons, win_reason::none);
+    ASSERT_TRUE(game.outcome().has_value());
+    EXPECT_FALSE(game.outcome()->winner.has_value());
+    EXPECT_EQ(game.outcome()->reasons, win_reason::none);
     EXPECT_EQ((game.board()[0, 0]), space::Black);
 }
 
@@ -392,11 +391,11 @@ TEST(game, records_simultaneous_capture_and_line_wins)
     // Assert
     ASSERT_TRUE(finalMove.has_value());
     ASSERT_EQ(finalMove->pairs_captured, 1u);
-    ASSERT_TRUE(finalMove->outcome.has_value());
-    ASSERT_TRUE(finalMove->outcome->winner.has_value());
-    EXPECT_EQ(*finalMove->outcome->winner, piece::White);
-    EXPECT_TRUE(has_reason(finalMove->outcome->reasons, win_reason::captures));
-    EXPECT_TRUE(has_reason(finalMove->outcome->reasons, win_reason::five_in_a_row));
+    ASSERT_TRUE(game.outcome().has_value());
+    ASSERT_TRUE(game.outcome()->winner.has_value());
+    EXPECT_EQ(*game.outcome()->winner, piece::White);
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::captures));
+    EXPECT_TRUE(has_reason(game.outcome()->reasons, win_reason::five_in_a_row));
     EXPECT_EQ(game.captures_by(piece::White), 10u);
     EXPECT_EQ(game.current_player(), piece::White);
 }

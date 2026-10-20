@@ -28,7 +28,7 @@ else if (move->pairs_captured > 0) {
 }
 
 // If appropriate, handle the final outcome of the game.
-if (move->outcome) {
+if (game.outcome().has_value()) {
     // A draw is represented by winner == std::nullopt.
     // The win_reason may contain both captures and five_in_a_row.
 }

@@ -232,7 +232,7 @@ namespace cj::pente
             current_state.current_player = opposite(current_state.current_player);
         }
 
-        return move_report{capturedPieces / 2, current_state.outcome};
+        return move_report{capturedPieces / 2};
     }
 
     const cj::pente::board& game::board() const noexcept

@@ -120,7 +120,7 @@ namespace cj::pente
     /// @brief Converts a player piece to the corresponding space type.
     /// @param piece The player piece.
     /// @return The corresponding space type (Black or White).
-    constexpr space to_space(piece piece)
+    constexpr space as_space(piece piece)
     {
         return (piece == piece::Black ? space::Black : space::White);
     }

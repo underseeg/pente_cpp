@@ -30,13 +30,13 @@ namespace
 }
 
 // Tests for basic piece and space conversions.
-TEST(penteboard, opposite_and_to_space)
+TEST(penteboard, opposite_and_as_space)
 {
     EXPECT_EQ(opposite(piece::Black), piece::White);
     EXPECT_EQ(opposite(piece::White), piece::Black);
 
-    EXPECT_EQ(to_space(piece::Black), space::Black);
-    EXPECT_EQ(to_space(piece::White), space::White);
+    EXPECT_EQ(as_space(piece::Black), space::Black);
+    EXPECT_EQ(as_space(piece::White), space::White);
 }
 
 // In and out of bounds checks for board coordinates.

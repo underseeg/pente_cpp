@@ -158,7 +158,7 @@ namespace cj::pente
         game_state opening_state(piece startingColour)
         {
             game_state initialState;
-            initialState.board[BoardCentre, BoardCentre] = to_space(startingColour);
+            initialState.board[BoardCentre, BoardCentre] = as_space(startingColour);
             initialState.current_player = opposite(startingColour);
             return initialState;
         }
@@ -200,7 +200,7 @@ namespace cj::pente
         }
 
         // Captures are applied before either win condition is checked.
-        current_state.board[position] = to_space(current_state.current_player);
+        current_state.board[position] = as_space(current_state.current_player);
         const auto capturedPieces = apply_pair_captures(current_state.board, position);
         auto& totalCapturedPieces = captured_pieces_for(current_state.captures, current_state.current_player);
         totalCapturedPieces += capturedPieces;

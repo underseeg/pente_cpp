@@ -85,9 +85,7 @@ namespace cj::pente::move_parser
             {
                 return std::unexpected{move_parse_error::invalid_format};
             }
-
-            using namespace std::placeholders;
-            auto apply_to_move = std::bind(apply_segment, std::ref(move), _1);
+            auto apply_to_move = std::bind_front(apply_segment, std::ref(move));
             return parse_direction(input).and_then(parse_distance).and_then(apply_to_move);
         }
     }

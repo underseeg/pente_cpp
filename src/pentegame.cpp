@@ -152,11 +152,7 @@ namespace cj::pente
         bool is_full(const board& gameBoard)
         {
             // an obvious optimisation would be to keep track of the number of empty spaces and return whether spaces == 0.
-            return ranges::all_of(gameBoard.rows(), [](const auto& row) {
-                return ranges::all_of(row, [](space value) {
-                    return value != space::Empty;
-                });
-            });
+            return !ranges::contains(gameBoard, space::Empty);
         }
 
         game_state opening_state(piece startingColour)

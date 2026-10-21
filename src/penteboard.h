@@ -95,6 +95,16 @@ namespace cj::pente
                 });
         }
 
+        auto begin(this auto&& self) noexcept
+        {
+            return self.data.begin();
+        }
+
+        auto end(this auto&& self) noexcept
+        {
+            return self.data.end();
+        }
+
     private:
         std::array<space, GridSize * GridSize> data{};
     };

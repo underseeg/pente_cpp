@@ -142,7 +142,7 @@ namespace cj::pente
         /// @param gameBoard The board to check.
         /// @param playedPosition The coordinates of the last move.
         /// @return True if the last move results in five contiguous pieces of the same color, false otherwise.
-        bool check_five_in_a_row(const board& gameBoard, coord playedPosition)
+        bool has_five_in_a_row(const board& gameBoard, coord playedPosition)
         {
             return ranges::any_of(AxisDirections, [&](const signed_coord& direction) {
                 return axis_has_five_in_a_row(gameBoard, playedPosition, direction);
@@ -172,6 +172,41 @@ namespace cj::pente
                 ? captures.pieces_captured_by_black
                 : captures.pieces_captured_by_white;
         }
+
+        auto apply_move_and_captures(board& board, piece player, coord playedPosition)
+        {
+            board[playedPosition] = as_space(player);
+            return apply_pair_captures(board, playedPosition);
+        }
+
+        auto update_capture_pot_for_player(capture_pots& captures, piece player, unsigned int capturedPieces)
+        {
+            auto& totalCapturedPieces = captured_pieces_for(captures, player);
+            totalCapturedPieces += capturedPieces;
+            return totalCapturedPieces;
+        }
+        
+        void update_game_outcome(game_state& state, unsigned int totalCapturedPieces, bool fiveInARow)
+        {
+            win_reason reasons = totalCapturedPieces >= 10
+                ? win_reason::captures
+                : win_reason::none;
+
+            if (fiveInARow)
+            {
+                reasons = reasons | win_reason::five_in_a_row;
+            }
+
+            if (reasons != win_reason::none)
+            {
+                state.outcome = game_outcome{state.current_player, reasons};
+            }
+            // A full board is a defensive draw case; ordinary game progression ends on a win.
+            else if (is_full(state.board))
+            {
+                state.outcome = game_outcome{nullopt, win_reason::none};
+            }
+        }
     }
 
     game::game(piece startingColour) noexcept
@@ -199,32 +234,13 @@ namespace cj::pente
             return unexpected{move_error::occupied};
         }
 
-        // Captures are applied before either win condition is checked.
-        current_state.board[position] = as_space(current_state.current_player);
-        const auto capturedPieces = apply_pair_captures(current_state.board, position);
-        auto& totalCapturedPieces = captured_pieces_for(current_state.captures, current_state.current_player);
-        totalCapturedPieces += capturedPieces;
-
-        auto reasons = totalCapturedPieces >= 10
-            ? win_reason::captures
-            : win_reason::none;
-        if (check_five_in_a_row(current_state.board, position))
+        const auto capturedPieces = apply_move_and_captures(current_state.board, current_state.current_player, position);
+        auto totalCapturedPieces = update_capture_pot_for_player(current_state.captures, current_state.current_player, capturedPieces);
+        update_game_outcome(current_state, totalCapturedPieces, has_five_in_a_row(current_state.board, position));
+        
+        // Switch to the next player if the game is not finished
+        if (!current_state.outcome)
         {
-            reasons = reasons | win_reason::five_in_a_row;
-        }
-
-        if (reasons != win_reason::none)
-        {
-            current_state.outcome = game_outcome{current_state.current_player, reasons};
-        }
-        // A full board is a defensive draw case; ordinary game progression ends on a win.
-        else if (is_full(current_state.board))
-        {
-            current_state.outcome = game_outcome{nullopt, win_reason::none};
-        }
-        else
-        {
-            // switch player turn
             current_state.current_player = opposite(current_state.current_player);
         }
 

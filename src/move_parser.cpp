@@ -12,6 +12,7 @@ namespace cj::pente::move_parser
             return static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
         }
 
+        /// @brief Represents a parsed segment of a move, e.g. "R3" or "U2"
         struct parsed_segment
         {
             char direction{};
@@ -99,13 +100,14 @@ namespace cj::pente::move_parser
             return move.position;
         }
 
+        // Parse the first segment of the move
         auto input_after_first = parse_and_apply_segment(move, input);
         if (!input_after_first)
         {
             return std::unexpected{input_after_first.error()};
         }
 
-        // Parse the second component of the move if it exists.
+        // Parse the second segment of the move if it exists
         if (!input_after_first->empty())
         {
             auto input_after_second = parse_and_apply_segment(move, *input_after_first);

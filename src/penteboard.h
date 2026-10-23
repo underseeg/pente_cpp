@@ -53,9 +53,9 @@ namespace cj::pente
     };
 
     constexpr coord::operator signed_coord() const
-        {
-            return signed_coord {static_cast<std::ptrdiff_t>(x), static_cast<std::ptrdiff_t>(y)};
-        }
+    {
+        return signed_coord {static_cast<std::ptrdiff_t>(x), static_cast<std::ptrdiff_t>(y)};
+    }
 
     constexpr signed_coord::operator coord() const
     {

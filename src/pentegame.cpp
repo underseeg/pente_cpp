@@ -194,7 +194,7 @@ namespace cj::pente
 
             if (fiveInARow)
             {
-                reasons = reasons | win_reason::five_in_a_row;
+                reasons |= win_reason::five_in_a_row;
             }
 
             if (reasons != win_reason::none)

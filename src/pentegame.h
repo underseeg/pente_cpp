@@ -15,7 +15,6 @@ namespace cj::pente
     };
 
     /// @brief The win conditions completed by the final move.
-    /// The bit values allow a move to satisfy both win conditions without allocating.
     enum class win_reason : unsigned char
     {
         none = 0x0,
@@ -23,11 +22,12 @@ namespace cj::pente
         five_in_a_row = 0x2
     };
 
-    /// @brief Combines win conditions without dynamic allocation.
-    constexpr win_reason operator|(win_reason left, win_reason right)
+    /// @brief Combines win conditions.
+    constexpr win_reason& operator|=(win_reason& left, win_reason right)
     {
-        return static_cast<win_reason>(
+        left = static_cast<win_reason>(
             static_cast<unsigned char>(left) | static_cast<unsigned char>(right));
+        return left;
     }
 
     /// @brief Checks whether a win condition is present.

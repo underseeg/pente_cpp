@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <ranges>
+#include <type_traits>
 #include <utility>
 
 using namespace cj::pente;
@@ -33,6 +34,17 @@ namespace
         return initialState;
     }
 }
+
+// test pair count strongly-typed class
+static_assert(is_constructible_v<pair_count, unsigned int>);
+static_assert(!is_convertible_v<unsigned int, pair_count>);
+static_assert(!is_convertible_v<pair_count, unsigned int>);
+static_assert(pair_count{3}.value() == 3u);
+
+// test pair count literal operator
+static_assert(0_pairs == pair_count{0});
+static_assert(1_pairs == pair_count{1});
+static_assert(operator""_pairs(numeric_limits<unsigned int>::max()) == pair_count{numeric_limits<unsigned int>::max()});
 
 // The starting colour occupies the centre, and its opponent moves first.
 TEST(game, initializes_opening_and_first_turn)
@@ -95,7 +107,7 @@ TEST(game, captures_pair_and_advances_turn)
 
     // Assert
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->pairs_captured, 1u);
+    EXPECT_EQ(*result, 1_pairs);
     EXPECT_FALSE(game.outcome().has_value());
 
     EXPECT_EQ((game.board()[0, 0]), space::White);
@@ -119,7 +131,7 @@ TEST(game, captures_pair_for_black)
 
     // Assert
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->pairs_captured, 1u);
+    EXPECT_EQ(*result, 1_pairs);
     EXPECT_EQ(game.captures_by(piece::Black), 2u);
     EXPECT_EQ(game.captures_by(piece::White), 0u);
     EXPECT_EQ(game.current_player(), piece::White);
@@ -148,7 +160,7 @@ TEST(game, captures_in_every_direction)
     EXPECT_TRUE(game.outcome().has_value());
     EXPECT_EQ(game.outcome()->winner, piece::White);
     EXPECT_EQ(game.outcome()->reasons, win_reason::captures);
-    EXPECT_EQ(result->pairs_captured, 8u);
+    EXPECT_EQ(*result, 8_pairs);
     EXPECT_EQ(game.captures_by(piece::White), 16u);
     EXPECT_EQ(game.captures_by(piece::Black), 0u);
 }
@@ -165,7 +177,7 @@ TEST(game, captures_pairs_on_both_sides_of_a_move)
 
     // Assert
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->pairs_captured, 2u);
+    EXPECT_EQ(*result, 2_pairs);
     EXPECT_EQ((game.board()[1, 0]), space::Empty);
     EXPECT_EQ((game.board()[2, 0]), space::Empty);
     EXPECT_EQ((game.board()[4, 0]), space::Empty);
@@ -189,12 +201,12 @@ TEST(game, does_not_capture_without_a_bracket)
 
     // Assert
     ASSERT_TRUE(singlePieceResult.has_value());
-    EXPECT_EQ(singlePieceResult->pairs_captured, 0u);
+    EXPECT_EQ(*singlePieceResult, 0_pairs);
     EXPECT_EQ((singlePieceGame.board()[1, 0]), space::Black);
     EXPECT_EQ(singlePieceGame.captures_by(piece::White), 0u);
 
     ASSERT_TRUE(unbracketedPairResult.has_value());
-    EXPECT_EQ(unbracketedPairResult->pairs_captured, 0u);
+    EXPECT_EQ(*unbracketedPairResult, 0_pairs);
     EXPECT_EQ((unbracketedPairGame.board()[1, 0]), space::Black);
     EXPECT_EQ((unbracketedPairGame.board()[2, 0]), space::Black);
     EXPECT_EQ(unbracketedPairGame.captures_by(piece::White), 0u);
@@ -323,7 +335,7 @@ TEST(game, wins_when_captures_pass_threshold)
 
     // Assert
     ASSERT_TRUE(winningMove.has_value());
-    ASSERT_EQ(winningMove->pairs_captured, 2u);
+    ASSERT_EQ(*winningMove, 2_pairs);
     ASSERT_TRUE(game.outcome().has_value());
     ASSERT_TRUE(game.outcome()->winner.has_value());
     EXPECT_EQ(*game.outcome()->winner, piece::White);
@@ -390,7 +402,7 @@ TEST(game, records_simultaneous_capture_and_line_wins)
 
     // Assert
     ASSERT_TRUE(finalMove.has_value());
-    ASSERT_EQ(finalMove->pairs_captured, 1u);
+    ASSERT_EQ(*finalMove, 1_pairs);
     ASSERT_TRUE(game.outcome().has_value());
     ASSERT_TRUE(game.outcome()->winner.has_value());
     EXPECT_EQ(*game.outcome()->winner, piece::White);

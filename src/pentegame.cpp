@@ -219,7 +219,7 @@ namespace cj::pente
     {
     }
 
-    std::expected<move_report, move_error> game::play(coord position) noexcept
+    std::expected<pair_count, move_error> game::play(coord position) noexcept
     {
         if (state.outcome)
         {
@@ -244,7 +244,7 @@ namespace cj::pente
             state.current_player = opposite(state.current_player);
         }
 
-        return move_report{capturedPieces / 2};
+        return pair_count{capturedPieces / 2};
     }
 
     const cj::pente::board& game::board() const noexcept

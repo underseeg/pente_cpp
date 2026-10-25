@@ -131,13 +131,13 @@ namespace
         }
     }
 
-    void print_any_captured_pairs(const move_report& result, const game& currentGame)
+    void print_any_captured_pairs(pair_count capturedPairs, const game& currentGame)
     {
-        if (result.pairs_captured > 0)
+        if (capturedPairs > 0_pairs)
         {
             const auto movingPlayer = currentGame.current_player();
             const auto totalCapturedPieces = currentGame.captures_by(movingPlayer);
-            cout << to_string(movingPlayer) << " captured " << result.pairs_captured
+            cout << to_string(movingPlayer) << " captured " << capturedPairs.value()
                  << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
         }
     }

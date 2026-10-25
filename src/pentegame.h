@@ -2,7 +2,9 @@
 
 #include "penteboard.h"
 
+#include <compare>
 #include <expected>
+#include <limits>
 #include <optional>
 
 namespace cj::pente
@@ -54,11 +56,28 @@ namespace cj::pente
         std::optional<game_outcome> outcome; ///< Empty until the game ends.
     };
 
-    /// @brief The result of a successful move.
-    struct move_report
+    /// @brief A strongly typed count of captured pairs.
+    class pair_count
     {
-        unsigned int pairs_captured{0}; ///< Pairs captured by this move.
+    public:
+        constexpr explicit pair_count(unsigned int value) noexcept : count{value} { }
+        constexpr unsigned int value() const noexcept { return count; }
+        constexpr auto operator<=>(const pair_count&) const noexcept = default;
+
+    private:
+        unsigned int count = 0;
     };
+
+    /// @brief Creates a pair_count from a pair-count integer literal.
+    consteval pair_count operator""_pairs(unsigned long long value)
+    {
+        // A real codebase should test this limit and test compilation failure for the out-of-range case.
+        if (value > std::numeric_limits<unsigned int>::max())
+        {
+            throw "pair count literal is out of range";
+        }
+        return pair_count{static_cast<unsigned int>(value)};
+    }
 
     /// @brief Why a move was rejected.
     enum class move_error
@@ -85,8 +104,8 @@ namespace cj::pente
         explicit game(const game_state& initialState) noexcept;
 
         /// @brief Applies a legal move and updates captures, outcome, and turn.
-        /// @return The move report, or the reason the move was rejected.
-        std::expected<move_report, move_error> play(coord position) noexcept;
+        /// @return The number of pairs captured, or the reason the move was rejected.
+        std::expected<pair_count, move_error> play(coord position) noexcept;
 
         /// @brief Returns a read-only reference to the current board.
         ///

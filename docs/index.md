@@ -23,7 +23,7 @@ auto move = game.play(position);
 if (!move) {
     // Handle move.error(): out_of_bounds, occupied, or game_finished.
 }
-else if (move->pairs_captured > 0) {
+else if (*move > 0_pairs) {
     // Report captures for this move.
 }
 

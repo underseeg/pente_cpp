@@ -96,9 +96,9 @@ namespace
         const auto winner = to_string(*outcome.winner);
         if (has_reason(outcome.reasons, win_reason::captures))
         {
-            const auto capturedPieces = finishedGame.captures_by(*outcome.winner);
-            cout << winner << " wins by capturing at least five pairs! Total captured pieces: "
-                 << capturedPieces << endl;
+            const auto capturedPairs = finishedGame.captures_by(*outcome.winner);
+            cout << winner << " wins by capturing at least five pairs! Total pairs captured: "
+                 << capturedPairs.value() << endl;
         }
         if (has_reason(outcome.reasons, win_reason::five_in_a_row))
         {
@@ -136,9 +136,9 @@ namespace
         if (capturedPairs > 0_pairs)
         {
             const auto movingPlayer = currentGame.current_player();
-            const auto totalCapturedPieces = currentGame.captures_by(movingPlayer);
+            const auto totalCapturedPairs = currentGame.captures_by(movingPlayer);
             cout << to_string(movingPlayer) << " captured " << capturedPairs.value()
-                 << " pair(s). Total pairs: " << (totalCapturedPieces / 2) << endl;
+                 << " pair(s). Total pairs: " << totalCapturedPairs.value() << endl;
         }
     }
 

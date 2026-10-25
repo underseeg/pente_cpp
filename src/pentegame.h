@@ -9,11 +9,39 @@
 
 namespace cj::pente
 {
-    /// @brief The captured-piece totals for both players.
+    /// @brief A strongly typed count of captured pairs.
+    class pair_count
+    {
+    public:
+        constexpr explicit pair_count(unsigned int value) noexcept : count{value} { }
+        constexpr unsigned int value() const noexcept { return count; }
+        constexpr auto operator<=>(const pair_count&) const noexcept = default;
+        constexpr pair_count& operator+=(pair_count other) noexcept
+        {
+            count += other.count;
+            return *this;
+        }
+
+    private:
+        unsigned int count = 0;
+    };
+
+    /// @brief Creates a pair_count from a pair-count integer literal.
+    consteval pair_count operator""_pairs(unsigned long long value)
+    {
+        // A real codebase should test this limit and test compilation failure for the out-of-range case.
+        if (value > std::numeric_limits<unsigned int>::max())
+        {
+            throw "pair count literal is out of range";
+        }
+        return pair_count{static_cast<unsigned int>(value)};
+    }
+
+    /// @brief The captured-pair totals for both players.
     struct capture_pots
     {
-        unsigned int pieces_captured_by_black {0}; ///< Pieces captured by the black player.
-        unsigned int pieces_captured_by_white {0}; ///< Pieces captured by the white player.
+        pair_count pairs_captured_by_black{0_pairs}; ///< Pairs captured by the black player.
+        pair_count pairs_captured_by_white{0_pairs}; ///< Pairs captured by the white player.
     };
 
     /// @brief The win conditions completed by the final move.
@@ -51,33 +79,10 @@ namespace cj::pente
     struct game_state
     {
         board game_board; ///< Current board.
-        capture_pots captures; ///< Captured-piece totals.
+        capture_pots captures; ///< Captured-pair totals.
         piece current_player{piece::Black}; ///< Player whose turn it is, or the winner after a win.
         std::optional<game_outcome> outcome; ///< Empty until the game ends.
     };
-
-    /// @brief A strongly typed count of captured pairs.
-    class pair_count
-    {
-    public:
-        constexpr explicit pair_count(unsigned int value) noexcept : count{value} { }
-        constexpr unsigned int value() const noexcept { return count; }
-        constexpr auto operator<=>(const pair_count&) const noexcept = default;
-
-    private:
-        unsigned int count = 0;
-    };
-
-    /// @brief Creates a pair_count from a pair-count integer literal.
-    consteval pair_count operator""_pairs(unsigned long long value)
-    {
-        // A real codebase should test this limit and test compilation failure for the out-of-range case.
-        if (value > std::numeric_limits<unsigned int>::max())
-        {
-            throw "pair count literal is out of range";
-        }
-        return pair_count{static_cast<unsigned int>(value)};
-    }
 
     /// @brief Why a move was rejected.
     enum class move_error
@@ -119,8 +124,8 @@ namespace cj::pente
         /// @brief Returns a copy of the game's outcome, if finished.
         std::optional<game_outcome> outcome() const noexcept;
 
-        /// @brief Returns a copy of the player's captured-piece total.
-        unsigned int captures_by(piece player) const noexcept;
+        /// @brief Returns a copy of the player's captured-pair total.
+        pair_count captures_by(piece player) const noexcept;
 
     private:
         // The game is the only mutable owner; callers observe this state by const reference.

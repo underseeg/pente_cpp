@@ -99,12 +99,12 @@ namespace cj::pente
         }
 
         /// @brief Removes a bracketed pair starting from the newly played piece.
-        unsigned int capture_pairs_along_direction(board& gameBoard, coord start, signed_coord direction)
+        pair_count capture_pairs_along_direction(board& gameBoard, coord start, signed_coord direction)
         {
             constexpr ptrdiff_t CaptureLength{4};
             if (!span_is_in_bounds(start, direction, CaptureLength))
             {
-                return 0u;
+                return 0_pairs;
             }
 
             auto line = ray(gameBoard, start, direction);
@@ -114,28 +114,28 @@ namespace cj::pente
             // The played piece is at index zero; check the two opponents and the bracketing piece.
             if (line[1] != opponentSpace || line[2] != opponentSpace || line[3] != playerSpace)
             {
-                return 0u;
+                return 0_pairs;
             }
 
             line[1] = space::Empty;
             line[2] = space::Empty;
-            return 2u;
+            return 1_pairs;
         }
 
         /// @brief Applies pair captures on the board based on the last move made at the given position.
         /// Behaviour is undefined if the space at the given position is Empty.
         /// @param board The board on which to apply pair captures.
         /// @param playedPosition The coordinates of the last move.
-        /// @return The number of pieces captured as a result of the last move.
-        unsigned int apply_pair_captures(board& gameBoard, coord playedPosition)
+        /// @return The number of pairs captured as a result of the last move.
+        pair_count apply_pair_captures(board& gameBoard, coord playedPosition)
         {
-            unsigned int capturedPieces{0};
+            pair_count capturedPairs{0_pairs};
             for (const auto& direction : AxisDirections)
             {
-                capturedPieces += capture_pairs_along_direction(gameBoard, playedPosition, direction);
-                capturedPieces += capture_pairs_along_direction(gameBoard, playedPosition, -direction);
+                capturedPairs += capture_pairs_along_direction(gameBoard, playedPosition, direction);
+                capturedPairs += capture_pairs_along_direction(gameBoard, playedPosition, -direction);
             }
-            return capturedPieces;
+            return capturedPairs;
         }
 
         /// @brief Checks if the last move made at the given position results in five contiguous pieces of the same color in a row.
@@ -163,14 +163,14 @@ namespace cj::pente
             return initialState;
         }
 
-        /// @brief Returns a player's captured-piece total while preserving the pot's constness.
+        /// @brief Returns a player's captured-pair total while preserving the pot's constness.
         template <typename Captures>
             requires std::same_as<std::remove_cvref_t<Captures>, capture_pots>
-        constexpr auto& captured_pieces_for(Captures& captures, piece player)
+        constexpr auto& captured_pairs_for(Captures& captures, piece player)
         {
             return player == piece::Black
-                ? captures.pieces_captured_by_black
-                : captures.pieces_captured_by_white;
+                ? captures.pairs_captured_by_black
+                : captures.pairs_captured_by_white;
         }
 
         auto apply_move_and_captures(board& board, piece player, coord playedPosition)
@@ -179,16 +179,16 @@ namespace cj::pente
             return apply_pair_captures(board, playedPosition);
         }
 
-        auto update_capture_pot_for_player(capture_pots& captures, piece player, unsigned int capturedPieces)
+        pair_count update_capture_pot_for_player(capture_pots& captures, piece player, pair_count capturedPairs)
         {
-            auto& totalCapturedPieces = captured_pieces_for(captures, player);
-            totalCapturedPieces += capturedPieces;
-            return totalCapturedPieces;
+            auto& totalCapturedPairs = captured_pairs_for(captures, player);
+            totalCapturedPairs += capturedPairs;
+            return totalCapturedPairs;
         }
         
-        void update_game_outcome(game_state& state, unsigned int totalCapturedPieces, bool fiveInARow)
+        void update_game_outcome(game_state& state, pair_count totalCapturedPairs, bool fiveInARow)
         {
-            win_reason reasons = totalCapturedPieces >= 10
+            win_reason reasons = totalCapturedPairs >= 5_pairs
                 ? win_reason::captures
                 : win_reason::none;
 
@@ -234,9 +234,9 @@ namespace cj::pente
             return unexpected{move_error::occupied};
         }
 
-        const auto capturedPieces = apply_move_and_captures(state.game_board, state.current_player, position);
-        auto totalCapturedPieces = update_capture_pot_for_player(state.captures, state.current_player, capturedPieces);
-        update_game_outcome(state, totalCapturedPieces, has_five_in_a_row(state.game_board, position));
+        const auto capturedPairs = apply_move_and_captures(state.game_board, state.current_player, position);
+        const auto totalCapturedPairs = update_capture_pot_for_player(state.captures, state.current_player, capturedPairs);
+        update_game_outcome(state, totalCapturedPairs, has_five_in_a_row(state.game_board, position));
         
         // Switch to the next player if the game is not finished
         if (!state.outcome)
@@ -244,7 +244,7 @@ namespace cj::pente
             state.current_player = opposite(state.current_player);
         }
 
-        return pair_count{capturedPieces / 2};
+        return capturedPairs;
     }
 
     const cj::pente::board& game::board() const noexcept
@@ -262,8 +262,8 @@ namespace cj::pente
         return state.outcome;
     }
 
-    unsigned int game::captures_by(piece player) const noexcept
+    pair_count game::captures_by(piece player) const noexcept
     {
-        return captured_pieces_for(state.captures, player);
+        return captured_pairs_for(state.captures, player);
     }
 }

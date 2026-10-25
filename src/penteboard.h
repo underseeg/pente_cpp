@@ -95,11 +95,13 @@ namespace cj::pente
                 });
         }
 
+        /// @brief Returns an iterator to the beginning of the board's underlying data array.
         auto begin(this auto&& self) noexcept
         {
             return self.data.begin();
         }
 
+        /// @brief Returns an iterator to the end of the board's underlying data array.
         auto end(this auto&& self) noexcept
         {
             return self.data.end();

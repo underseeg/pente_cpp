@@ -41,8 +41,8 @@ namespace cj::pente
     /// A missing winner represents a draw; draws have no win reasons.
     struct game_outcome
     {
-        std::optional<piece> winner;
-        win_reason reasons{win_reason::none};
+        std::optional<piece> winner; ///< The winner of the game, if any.
+        win_reason reasons{win_reason::none}; ///< The win reasons for the final move, if any.
     };
 
     /// @brief The observable state of a Pente game.

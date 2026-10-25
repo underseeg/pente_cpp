@@ -16,7 +16,7 @@ See the [pente namespace](@ref cj::pente)
 cj::pente::game game{cj::pente::piece::Black};
 ```
 
-Apply a move through the game. Illegal moves return a `move_error` and leave the state unchanged. A successful move reports captured pairs and any resulting outcome.
+Apply a move through the game. Illegal moves return a `move_error` and leave the state unchanged. A successful move reports captured pairs.
 
 ```cpp
 auto move = game.play(position);

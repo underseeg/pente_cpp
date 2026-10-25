@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <span>
 #include <ranges>
 #include <utility>
@@ -71,7 +72,7 @@ namespace cj::pente
         /// @param x The x-coordinate of the space.
         /// @param y The y-coordinate of the space.
         /// @return A cv-qualified reference to the space at the given coordinates.
-        auto&& operator[](this auto&& self, std::size_t x, std::size_t y)
+        auto&& operator[](this auto&& self, std::size_t x, std::size_t y) noexcept
         {
             return std::forward<decltype(self)>(self).data[y * GridSize + x];
         }
@@ -79,30 +80,33 @@ namespace cj::pente
         /// @brief Accesses the space at the given coordinates. Behaviour is undefined if position is out of bounds.
         /// @param position The coordinates of the space.
         /// @return A cv-qualified reference to the space at the given coordinates.
-        auto&& operator[](this auto&& self, coord position)
+        auto&& operator[](this auto&& self, coord position) noexcept
         {
             return std::forward<decltype(self)>(self).data[position.y * GridSize + position.x];
         }
 
-        /// @brief Returns a view of the rows of the board, where each row is a span of type: const space*.
-        /// @return A view of the rows of the board.
-        inline auto rows() const
+        /// @brief Returns a view of the board rows. Each row is represented as a span of spaces.
+        inline auto rows(this auto&& self) noexcept
         {
+            auto* cells = self.data.data();
             return std::views::iota(0zu, GridSize)
-                | std::views::transform([this](std::size_t row) {
-                    return std::span{data.data() + row * GridSize, GridSize};
+                | std::views::transform([cells](std::size_t row) {
+                    return std::span{cells + row * GridSize, GridSize};
                 });
+        }
+
+        auto begin(this auto&& self) noexcept
+        {
+            return self.data.begin();
+        }
+
+        auto end(this auto&& self) noexcept
+        {
+            return self.data.end();
         }
 
     private:
         std::array<space, GridSize * GridSize> data{};
-    };
-
-    /// @brief Represents the capture pots for both players, tracking the number of pieces captured by each player.
-    struct capture_pots
-    {
-        unsigned int pieces_captured_by_black {0}; ///< The number of pieces captured by the black player.
-        unsigned int pieces_captured_by_white {0}; ///< The number of pieces captured by the white player.
     };
 
     /// @brief Returns the opposite player piece.
@@ -116,7 +120,7 @@ namespace cj::pente
     /// @brief Converts a player piece to the corresponding space type.
     /// @param piece The player piece.
     /// @return The corresponding space type (Black or White).
-    constexpr space to_space(piece piece)
+    constexpr space as_space(piece piece)
     {
         return (piece == piece::Black ? space::Black : space::White);
     }
@@ -130,26 +134,4 @@ namespace cj::pente
     /// @param position The coordinates to check.
     /// @return True if the coordinates are within bounds, false otherwise.
     bool is_in_bounds(signed_coord position);
-    
-    /// @brief Applies pair captures on the board based on the last move made at the given position.
-    /// Behaviour is undefined if the space at the given position is Empty.
-    /// @param board The board on which to apply pair captures.
-    /// @param playedPosition The coordinates of the last move.
-    /// @return The number of pieces captured as a result of the last move.
-    unsigned int apply_pair_captures(board& board, coord playedPosition);
-
-    /// @brief Adds captured pieces to the player's capture pot and checks for a win by captures.
-    /// @param pots The capture pots to update.
-    /// @param player The player who captured the pieces.
-    /// @param piecesToAdd The number of pieces to add to the player's capture pot.
-    /// @return A pair containing the total captured pieces and a boolean indicating if the player has won by captures.
-    ///
-    /// The win condition is true when `(total captured pieces / 2) >= 5`.
-    std::pair<unsigned int, bool> add_captured_pieces(capture_pots& pots, piece player, unsigned int piecesToAdd);
-
-    /// @brief Checks if the last move made at the given position results in five contiguous pieces of the same color in a row.
-    /// @param board The board to check.
-    /// @param playedPosition The coordinates of the last move.
-    /// @return True if the last move results in five contiguous pieces of the same color, false otherwise.
-    bool check_five_in_a_row(const board& board, coord playedPosition);
 }

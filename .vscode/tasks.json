@@ -12,7 +12,7 @@
             },
             "command": [
                 "cls;",
-                "cmake --build --preset app-build-local"
+                "cmake --build --preset app-build"
             ],
             "problemMatcher": []
         }

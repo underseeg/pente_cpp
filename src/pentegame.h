@@ -13,9 +13,13 @@ namespace cj::pente
     class pair_count
     {
     public:
+        /// @brief Constructs a pair_count with the specified value
         constexpr explicit pair_count(unsigned int value) noexcept : count{value} { }
+        /// @brief Returns the stored pair count as a raw unsigned integer
         constexpr unsigned int value() const noexcept { return count; }
+        /// @brief Provides a three-way comparison operator for pair_count
         constexpr auto operator<=>(const pair_count&) const noexcept = default;
+        /// @brief Adds another pair_count to this one
         constexpr pair_count& operator+=(pair_count other) noexcept
         {
             count += other.count;

@@ -158,7 +158,7 @@ namespace cj::pente
         game_state opening_state(piece startingColour)
         {
             game_state initialState;
-            initialState.gameBoard[BoardCentre, BoardCentre] = as_space(startingColour);
+            initialState.game_board[BoardCentre, BoardCentre] = as_space(startingColour);
             initialState.current_player = opposite(startingColour);
             return initialState;
         }
@@ -202,7 +202,7 @@ namespace cj::pente
                 state.outcome = game_outcome{state.current_player, reasons};
             }
             // A full board is a defensive draw case; ordinary game progression ends on a win.
-            else if (is_full(state.gameBoard))
+            else if (is_full(state.game_board))
             {
                 state.outcome = game_outcome{nullopt, win_reason::none};
             }
@@ -215,13 +215,13 @@ namespace cj::pente
     }
 
     game::game(const game_state& initialState) noexcept
-        : current_state{initialState}
+        : state{initialState}
     {
     }
 
     std::expected<move_report, move_error> game::play(coord position) noexcept
     {
-        if (current_state.outcome)
+        if (state.outcome)
         {
             return unexpected{move_error::game_finished};
         }
@@ -229,19 +229,19 @@ namespace cj::pente
         {
             return unexpected{move_error::out_of_bounds};
         }
-        if (current_state.gameBoard[position] != space::Empty)
+        if (state.game_board[position] != space::Empty)
         {
             return unexpected{move_error::occupied};
         }
 
-        const auto capturedPieces = apply_move_and_captures(current_state.gameBoard, current_state.current_player, position);
-        auto totalCapturedPieces = update_capture_pot_for_player(current_state.captures, current_state.current_player, capturedPieces);
-        update_game_outcome(current_state, totalCapturedPieces, has_five_in_a_row(current_state.gameBoard, position));
+        const auto capturedPieces = apply_move_and_captures(state.game_board, state.current_player, position);
+        auto totalCapturedPieces = update_capture_pot_for_player(state.captures, state.current_player, capturedPieces);
+        update_game_outcome(state, totalCapturedPieces, has_five_in_a_row(state.game_board, position));
         
         // Switch to the next player if the game is not finished
-        if (!current_state.outcome)
+        if (!state.outcome)
         {
-            current_state.current_player = opposite(current_state.current_player);
+            state.current_player = opposite(state.current_player);
         }
 
         return move_report{capturedPieces / 2};
@@ -249,21 +249,21 @@ namespace cj::pente
 
     const cj::pente::board& game::board() const noexcept
     {
-        return current_state.gameBoard;
+        return state.game_board;
     }
 
     piece game::current_player() const noexcept
     {
-        return current_state.current_player;
+        return state.current_player;
     }
 
     std::optional<game_outcome> game::outcome() const noexcept
     {
-        return current_state.outcome;
+        return state.outcome;
     }
 
     unsigned int game::captures_by(piece player) const noexcept
     {
-        return captured_pieces_for(current_state.captures, player);
+        return captured_pieces_for(state.captures, player);
     }
 }

@@ -48,7 +48,7 @@ namespace cj::pente
     /// @brief The observable state of a Pente game.
     struct game_state
     {
-        board gameBoard; ///< Current board.
+        board game_board; ///< Current board.
         capture_pots captures; ///< Captured-piece totals.
         piece current_player{piece::Black}; ///< Player whose turn it is, or the winner after a win.
         std::optional<game_outcome> outcome; ///< Empty until the game ends.
@@ -105,6 +105,6 @@ namespace cj::pente
 
     private:
         // The game is the only mutable owner; callers observe this state by const reference.
-        game_state current_state{};
+        game_state state{};
     };
 }

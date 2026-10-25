@@ -26,7 +26,7 @@ namespace
         game_state initialState{};
         initialState.current_player = currentPlayer;
         initialState.captures = captures;
-        for (auto [destinationRow, sourceRow] : views::zip(initialState.board.rows(), layout))
+        for (auto [destinationRow, sourceRow] : views::zip(initialState.gameBoard.rows(), layout))
         {
             ranges::copy(sourceRow, destinationRow.begin());
         }

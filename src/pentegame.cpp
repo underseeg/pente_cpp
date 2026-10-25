@@ -158,7 +158,7 @@ namespace cj::pente
         game_state opening_state(piece startingColour)
         {
             game_state initialState;
-            initialState.board[BoardCentre, BoardCentre] = as_space(startingColour);
+            initialState.gameBoard[BoardCentre, BoardCentre] = as_space(startingColour);
             initialState.current_player = opposite(startingColour);
             return initialState;
         }
@@ -202,7 +202,7 @@ namespace cj::pente
                 state.outcome = game_outcome{state.current_player, reasons};
             }
             // A full board is a defensive draw case; ordinary game progression ends on a win.
-            else if (is_full(state.board))
+            else if (is_full(state.gameBoard))
             {
                 state.outcome = game_outcome{nullopt, win_reason::none};
             }
@@ -229,14 +229,14 @@ namespace cj::pente
         {
             return unexpected{move_error::out_of_bounds};
         }
-        if (current_state.board[position] != space::Empty)
+        if (current_state.gameBoard[position] != space::Empty)
         {
             return unexpected{move_error::occupied};
         }
 
-        const auto capturedPieces = apply_move_and_captures(current_state.board, current_state.current_player, position);
+        const auto capturedPieces = apply_move_and_captures(current_state.gameBoard, current_state.current_player, position);
         auto totalCapturedPieces = update_capture_pot_for_player(current_state.captures, current_state.current_player, capturedPieces);
-        update_game_outcome(current_state, totalCapturedPieces, has_five_in_a_row(current_state.board, position));
+        update_game_outcome(current_state, totalCapturedPieces, has_five_in_a_row(current_state.gameBoard, position));
         
         // Switch to the next player if the game is not finished
         if (!current_state.outcome)
@@ -249,7 +249,7 @@ namespace cj::pente
 
     const cj::pente::board& game::board() const noexcept
     {
-        return current_state.board;
+        return current_state.gameBoard;
     }
 
     piece game::current_player() const noexcept
